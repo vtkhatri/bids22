@@ -123,10 +123,10 @@ always_comb begin
         else                     nextState = LOCKED;
     end
     LOCKED: begin
-        nextState = (C_start) ? ROUNDSTARTED : LOCKED;
+        nextState = (bif.C_start) ? ROUNDSTARTED : LOCKED;
     end
     ROUNDSTARTED:begin
-        nextState = (C_start) ? ROUNDSTARTED : ROUNDOVER;
+        nextState = (bif.C_start) ? ROUNDSTARTED : ROUNDOVER;
     end
     ROUNDOVER:begin
         // ¯\_(ツ)_/¯
@@ -206,7 +206,7 @@ always_comb begin
         bif.ready = 1;
     end
     ROUNDSTARTED:begin
-        if (int i=0; i<NUMBIDDERS; i++) begin
+        for (int i=0; i<NUMBIDDERS; i++) begin
             if (bidder[i].in.bid) begin
                 if (mask[i] === 0) begin
                     $error("%0t - bidder[%0d] has been masked out", $time, i);
