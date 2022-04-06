@@ -15,7 +15,7 @@ typedef enum logic [1:0] {
     NOBIDERROR,
     ROUNDINACTIVE,
     INSUFFICIENTFUNDS,
-    INVALIDREQUEST
+    INVALIDREQUEST     // masked out
 } biderrors_t;
 
 typedef enum logic [3:0] {
@@ -34,19 +34,20 @@ typedef struct packed {
     bit [BIDAMTBITS-1:0] bidAmt;
     bit bid;
     bit retract;
-} inputs_t;
+} biddersinputs_t;
 
 typedef struct packed {
     bit ack;
-    bit [1:0] err;
+    biderrors_t err;
     bit [DATAWIDTH-1:0] balance;
     bit win;
-} outputs_t;
+} biddersoutputs_t;
 
 typedef struct packed {
-    inputs_t in;
-    outputs_t out;
+    biddersinputs_t in;
+    biddersoutputs_t out;
     reg [DATAWIDTH-1:0] value;
+    reg [DATAWIDTH-1:0] lastbid;
 } bidders_t;
 
 endpackage : bids22defs
@@ -58,8 +59,8 @@ interface bids22interface (input logic clk, reset_n);
 
     // actual bidders
     // bidders_t X, Y, Z;
-    inputs_t X_in, Y_in, Z_in;
-    outputs_t X_out, Y_out, Z_out;
+    biddersinputs_t X_in, Y_in, Z_in;
+    biddersoutputs_t X_out, Y_out, Z_out;
     
     // fsm control signals
     logic [DATAWIDTH-1:0] C_data;
@@ -72,9 +73,12 @@ interface bids22interface (input logic clk, reset_n);
     logic roundOver;
     logic [DATAWIDTH-1:0] maxBid;
 
-    modport singlebidder(
+    modport bidmaster(
         input X_in, Y_in, Z_in,
-        output X_out, Y_out, Z_out
+        output X_out, Y_out, Z_out,
+
+        input C_data, C_op, C_start,
+        output ready, err, roundOver, maxBid
     );
     
 endinterface : bids22interface

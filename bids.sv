@@ -5,16 +5,16 @@ module bids22(bids22interface bif);
 parameter DATAWIDTH = 32;
 parameter NUMBIDDERS = 3;
 
-bidders_t X, Y, Z; // TODO : parameterized implementation for number of bidders
+bidders_t bidder[NUMBIDDERS]; // TODO : parameterized implementation for number of bidders
 
 // taking inputs into the bidders_t structure
-assign X.in = bif.X_in;
-assign Y.in = bif.Y_in;
-assign Z.in = bif.Z_in;
+assign bidder[0].in = bif.X_in;
+assign bidder[1].in = bif.Y_in;
+assign bidder[2].in = bif.Z_in;
 // giving FSM outputs as bidders_t structure's outputs
-assign bif.X_out = X.out;
-assign bif.Y_out = Y.out;
-assign bif.Z_out = Z.out;
+assign bif.X_out = bidder[0].out;
+assign bif.Y_out = bidder[1].out;
+assign bif.Z_out = bidder[2].out;
 
 // misc fsm registers
 logic [DATAWIDTH-1:0] timer, cooldownTimer, cooldownTimerValue, key, bidcost;
@@ -38,9 +38,10 @@ states_t state, nextState;
 always@(posedge bif.clk or negedge bif.reset_n) begin
     if (~bif.reset_n) begin
         state <= UNLOCKED;
-        X.value <= 0;
-        Y.value <= 0;
-        Z.value <= 0;
+        for (int i=0; i<NUMBIDDERS; i++) begin
+            bidder[i].value <= 0;
+            bidder[i].lastbid <= 0;
+        end
         mask <= 3'b111;
         cooldownTimerValue <= 32'hF;
         cooldownTimer <= 32'hF;
@@ -60,13 +61,13 @@ always@(posedge bif.clk or negedge bif.reset_n) begin
                         key <= bif.C_data;
                     end
                     LOADX: begin
-                        X.value <= bif.C_data;
+                        bidder[0].value <= bif.C_data;
                     end
                     LOADY: begin
-                        Y.value <= bif.C_data;
+                        bidder[1].value <= bif.C_data;
                     end
                     LOADZ: begin
-                        Z.value <= bif.C_data;
+                        bidder[2].value <= bif.C_data;
                     end
                     SETMASK: begin
                         mask <= bif.C_data;
@@ -86,8 +87,18 @@ always@(posedge bif.clk or negedge bif.reset_n) begin
                 // ¯\_(ツ)_/¯
             end
             ROUNDSTARTED: begin
-                if (~bif.C_start) nextState = ROUNDOVER;
-                else begin
+                for (int i=0; i<NUMBIDDERS; i++) begin
+                    if (bidder[i].in.bid) begin
+                        if ()
+                    end else if (bidder[i].in.retract) begin
+                        bidder[i].lastbid <= 0;
+                    end
+                    if (bidder[i].in.bid) begin
+                    end else if (bidder[i].in.retract) begin
+                    end
+                    if (bidder[i].in.bid) begin
+                    end else if (bidder[i].in.retract) begin
+                    end
                 end
             end
             ROUNDOVER: begin
@@ -117,15 +128,16 @@ always_comb begin
         else                     nextState = LOCKED;
     end
     LOCKED: begin
-        // if we are here, we have locked with a new key
-        // currently do nothing in this state, maybe skippable
-        nextState = ROUNDSTARTED;
+        nextState = (C_start) ? ROUNDSTARTED : LOCKED;
     end
     ROUNDSTARTED:begin
+        nextState = (C_start) ? ROUNDSTARTED : ROUNDOVER;
     end
     ROUNDOVER:begin
+        // ¯\_(ツ)_/¯
     end
     READYNEXT: begin
+        // ¯\_(ツ)_/¯
     end
     endcase
 
@@ -134,14 +146,10 @@ end
 // output logic
 always_comb begin
     // equivalent to assign statements
-    X.out.balance = X.value;
-    Y.out.balance = Y.value;
-    Z.out.balance = Z.value;
-
-    // reset values for bidders' output, it's a packed struct
-    X.out = 0;
-    Y.out = 0;
-    Z.out = 0;
+    for (int i=0; i<NUMBIDDERS; i++) begin
+        bidder[i].out.balance = bidder[i].value;
+        bidder[i].out = 0; // reset values for bidders' output, it's a packed struct
+    end
 
     // reset values for fsm
     bif.ready = 0;
@@ -168,18 +176,25 @@ always_comb begin
                     bif.err = ALREADYUNLOCKED;
                 end
                 LOCK: begin
+                    // ¯\_(ツ)_/¯
                 end
                 LOADX: begin
+                    // ¯\_(ツ)_/¯
                 end
                 LOADY: begin
+                    // ¯\_(ツ)_/¯
                 end
                 LOADZ: begin
+                    // ¯\_(ツ)_/¯
                 end
                 SETMASK: begin
+                    // ¯\_(ツ)_/¯
                 end
                 SETTIMER: begin
+                    // ¯\_(ツ)_/¯
                 end
                 SETBIDCHARGE: begin
+                    // ¯\_(ツ)_/¯
                 end
                 default: begin
                     $error("%0t - invalid opcode (%b) received in %p state", bif.C_op, state);
@@ -192,8 +207,20 @@ always_comb begin
         bif.err = BADKEY;
     end
     LOCKED: begin
+        // ready to start round now, C_start will be accepted now
+        bif.ready = 1;
     end
     ROUNDSTARTED:begin
+        if (int i=0; i<NUMBIDDERS; i++) begin
+            if (bidder[i].in.bid) begin
+                if ()
+                if (bidder[i].in.bidAmt + bidcost > bidder[i].value) begin
+                    $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d",
+                            $time, i, bidder[i].in.bidAmt, bidder[i].value, bidcost);
+                    bidder[i].out.err = INSUFFICIENTFUNDS;
+                end
+            end
+        end
     end
     ROUNDOVER:begin
     end
