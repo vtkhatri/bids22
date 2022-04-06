@@ -17,3 +17,6 @@ vlog:
 
 vsim: vlog
 	vsim -c work.$(top_module) $(vsim_args)
+
+zip:
+	zip -r ece593bids22.zip *
