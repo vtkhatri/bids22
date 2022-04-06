@@ -159,12 +159,12 @@ always_comb begin
 
     case (state)
     RESET: begin
-        $error("%0t - should never enter RESET state, check");
+        $error("%0t - should never enter RESET state, check", $time);
         // ¯\_(ツ)_/¯
     end
     UNLOCKED: begin
         if (bif.C_start) begin
-            $error("%0t - C_start asserted when state is UNLOCKED");
+            $error("%0t - C_start asserted when state is UNLOCKED", $time);
             bif.err = CSTARTWHENUNLOCKED;
         end
         else begin
@@ -172,7 +172,7 @@ always_comb begin
                 NO_OP: begin
                 end
                 UNLOCK: begin
-                    $error("%0t - already unlocked");
+                    $error("%0t - already unlocked", $time);
                     bif.err = ALREADYUNLOCKED;
                 end
                 LOCK: begin
@@ -197,7 +197,7 @@ always_comb begin
                     // ¯\_(ツ)_/¯
                 end
                 default: begin
-                    $error("%0t - invalid opcode (%b) received in %p state", bif.C_op, state);
+                    $error("%0t - invalid opcode (%b) received in %p state", $time, bif.C_op, state);
                     bif.err = INVALID_OP;
                 end
             endcase
@@ -213,11 +213,16 @@ always_comb begin
     ROUNDSTARTED:begin
         if (int i=0; i<NUMBIDDERS; i++) begin
             if (bidder[i].in.bid) begin
-                if ()
-                if (bidder[i].in.bidAmt + bidcost > bidder[i].value) begin
-                    $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d",
-                            $time, i, bidder[i].in.bidAmt, bidder[i].value, bidcost);
-                    bidder[i].out.err = INSUFFICIENTFUNDS;
+                if (mask[i] === 0) begin
+                    $error("%0t - bidder[%0d] has been masked out", $time, i);
+                    bidder[i].out.err = INVALIDREQUEST;
+                end
+                else begin
+                    if (bidder[i].in.bidAmt + bidcost > bidder[i].value) begin
+                        $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d",
+                                $time, i, bidder[i].in.bidAmt, bidder[i].value, bidcost);
+                        bidder[i].out.err = INSUFFICIENTFUNDS;
+                    end
                 end
             end
         end

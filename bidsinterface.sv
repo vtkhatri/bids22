@@ -15,7 +15,7 @@ typedef enum logic [1:0] {
     NOBIDERROR,
     ROUNDINACTIVE,
     INSUFFICIENTFUNDS,
-    INVALIDREQUEST     // masked out
+    INVALIDREQUEST     // bidder is masked out
 } biderrors_t;
 
 typedef enum logic [3:0] {
