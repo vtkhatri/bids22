@@ -88,22 +88,17 @@ always@(posedge bif.clk or negedge bif.reset_n) begin
             end
             ROUNDSTARTED: begin
                 for (int i=0; i<NUMBIDDERS; i++) begin
-                    if (bidder[i].in.bid) begin
-                        if ()
-                    end else if (bidder[i].in.retract) begin
-                        bidder[i].lastbid <= 0;
-                    end
-                    if (bidder[i].in.bid) begin
-                    end else if (bidder[i].in.retract) begin
-                    end
-                    if (bidder[i].in.bid) begin
-                    end else if (bidder[i].in.retract) begin
-                    end
+                    if (bidder[i].in.bid)
+                        if (bidder[i].value > bidder[i].in.bidAmt + bidcost)
+                            bidder[i].value <= bidder[i].value - (bidder[i].in.bidAmt + bidcost);
+                    else if (bidder[i].in.retract) bidder[i].lastbid <= 0;
                 end
             end
             ROUNDOVER: begin
+                // ¯\_(ツ)_/¯
             end
             READYNEXT: begin
+                // ¯\_(ツ)_/¯
             end
         endcase
     end
@@ -222,12 +217,23 @@ always_comb begin
                         $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d",
                                 $time, i, bidder[i].in.bidAmt, bidder[i].value, bidcost);
                         bidder[i].out.err = INSUFFICIENTFUNDS;
+                    end else begin
+                        bidder[i].out.err = NOBIDERROR;
                     end
                 end
             end
         end
     end
     ROUNDOVER:begin
+        for (int i=0; i<NUMBIDDERS; i++) begin
+            if (bif.maxBid < bidder[i].lastbid) begin
+                bif.maxBid = bidder[i].lastbid;
+                bidder[i].out.win = 1;
+                for (int j=0; j<NUMBIDDERS; j++) begin
+                    if (i != j) bidder[j].out.win = 0;
+                end
+            end
+        end
     end
     READYNEXT: begin
     end
