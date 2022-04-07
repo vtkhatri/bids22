@@ -1,5 +1,5 @@
 # implementation of bids22 - group 4
-## Deeksha Kamath, Viraj Khatri
+## deeksha kamath, viraj khatri
 
 * `bidsinterface.sv` - everything required for interface
   * `bids22defs`
