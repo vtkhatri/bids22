@@ -129,9 +129,11 @@ always_comb begin
         nextState = (bif.C_start) ? ROUNDSTARTED : ROUNDOVER;
     end
     ROUNDOVER:begin
+        nextState = READYNEXT;
         // ¯\_(ツ)_/¯
     end
     READYNEXT: begin
+        nextState = LOCKED;
         // ¯\_(ツ)_/¯
     end
     endcase
@@ -225,6 +227,9 @@ always_comb begin
         end
     end
     ROUNDOVER:begin
+        // looping through till maximum is found, maybe use better logic
+        // to take advantage of the fact that there can be multiple cycles
+        // before the decision is to be taken
         for (int i=0; i<NUMBIDDERS; i++) begin
             if (bif.maxBid < bidder[i].lastbid) begin
                 bif.maxBid = bidder[i].lastbid;
