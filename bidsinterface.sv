@@ -55,12 +55,15 @@ endpackage : bids22defs
 interface bids22interface (input logic clk, reset_n);
 
     parameter DATAWIDTH = 32;
+    parameter NUMBIDDERS = 3;
     import bids22defs::*;
 
     // actual bidders
     // bidders_t X, Y, Z;
-    biddersinputs_t X_in, Y_in, Z_in;
-    biddersoutputs_t X_out, Y_out, Z_out;
+    // biddersinputs_t X_in, Y_in, Z_in;
+    biddersinputs_t bidders_in[NUMBIDDERS];
+    // biddersoutputs_t X_out, Y_out, Z_out;
+    biddersoutputs_t bidders_out[NUMBIDDERS];
     
     // fsm control signals
     logic [DATAWIDTH-1:0] C_data;
@@ -74,8 +77,8 @@ interface bids22interface (input logic clk, reset_n);
     logic [DATAWIDTH-1:0] maxBid;
 
     modport bidmaster(
-        input X_in, Y_in, Z_in,
-        output X_out, Y_out, Z_out,
+        input bidders_in,
+        output bidders_out,
 
         input C_data, C_op, C_start,
         output ready, err, roundOver, maxBid

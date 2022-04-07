@@ -10,7 +10,7 @@ top_module := top
 vsim_args := -do "run -all"
 
 SUBMISSION_FILE := ece593bids22group4.zip
-REMOVABLE_STUFF := $(SUBMISSION_FILE)
+REMOVABLE_STUFF := $(SUBMISSION_FILE) work/
 
 all: vlib vlog vsim zip
 
