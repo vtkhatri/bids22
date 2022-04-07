@@ -1,6 +1,18 @@
 # implementation of bids22 - group 4
 ## deeksha kamath, viraj khatri
-
+### makefile
+* targets -
+  * `all` - do `vlib -> vlog -> vsim -> zip`
+  * `vlib` - make `work` library
+  * `vlog` - compile all files from `SRC_FILES`
+  * `vsim` - simulate `work.top` (has pre-requisite `vlog`)
+  * `zip` - make zipfile for submission
+  * `clean` - delete all deletable files
+* if `bids22.sv` is compiled before `bids22interface.sv`, do -
+```
+export oops=1 && make vlog
+```
+### implementation
 * `bidsinterface.sv` - everything required for interface
   * `bids22defs`
     * enum definitions for opcodes, error codes for bidders, and error codes for `bids22` output
