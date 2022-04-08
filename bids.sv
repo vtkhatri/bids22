@@ -88,15 +88,19 @@ always@(posedge bif.clk or negedge bif.reset_n) begin
             end
             ROUNDSTARTED: begin
                 for (int i=0; i<NUMBIDDERS; i++) begin
-                    if (bidder[i].in.bid)
+                    if (bidder[i].in.bid && mask[i])
                         if (bidder[i].value > bidder[i].in.bidAmt + bidcost) begin
-                            bidder[i].value <= bidder[i].value - (bidder[i].in.bidAmt + bidcost);
+                            bidder[i].value <= bidder[i].value - bidcost;
                             bidder[i].lastbid <= bidder[i].in.bidAmt;
                         end
                     else if (bidder[i].in.retract) bidder[i].lastbid <= 0;
                 end
             end
             ROUNDOVER: begin
+                for (int i=0; i<NUMBIDDERS; i++) begin
+                    // hopefully there's not more than 1 winner
+                    if (bidder[i].out.win == 1) bidder[i].value <= bidder[i].value - bidder[i].lastbid;
+                end
                 // ¯\_(ツ)_/¯
             end
             READYNEXT: begin
@@ -117,8 +121,7 @@ always_comb begin
         nextState = (bif.C_op == LOCK) ? LOCKED : UNLOCKED;
     end
     COOLDOWN: begin
-        if (cooldownTimer !== 0) nextState = COOLDOWN;
-        else                     nextState = LOCKED;
+        nextState = (cooldownTimer != 0) ? COOLDOWN : LOCKED;
     end
     LOCKED: begin
         if      (bif.C_start)                             nextState = ROUNDSTARTED;
@@ -209,13 +212,13 @@ always_comb begin
     ROUNDSTARTED:begin
         for (int i=0; i<NUMBIDDERS; i++) begin
             if (bidder[i].in.bid) begin
-                if (mask[i] === 0) begin
+                if (mask[i] == 0) begin
                     $error("%0t - bidder[%0d] has been masked out", $time, i);
                     bidder[i].out.err = INVALIDREQUEST;
                 end
                 else begin
                     if (bidder[i].in.bidAmt + bidcost > bidder[i].value) begin
-                        $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d",
+                        $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d)",
                                 $time, i, bidder[i].in.bidAmt, bidder[i].value, bidcost);
                         bidder[i].out.err = INSUFFICIENTFUNDS;
                     end else begin
@@ -229,6 +232,13 @@ always_comb begin
         for (int i=0; i<NUMBIDDERS; i++) begin
             if (bif.maxBid < bidder[i].lastbid) begin
                 bif.maxBid = bidder[i].lastbid;
+            end
+        end
+
+        // duplicate bids check for error output
+        for (int i=0; i<NUMBIDDERS; i++) begin
+            for (int j=i+1;j<NUMBIDDERS; j++) begin
+                if (bidder[i].in.bidAmt == bidder[j].in.bidAmt) bif.err = DUPLICATEBIDS;
             end
         end
     end

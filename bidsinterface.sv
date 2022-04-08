@@ -8,10 +8,11 @@ typedef enum logic [2:0] {
     BADKEY,
     ALREADYUNLOCKED,
     CSTARTWHENUNLOCKED,
-    INVALID_OP
+    INVALID_OP,
+    DUPLICATEBIDS
 } outerrors_t;
 
-typedef enum logic [1:0] {
+typedef enum logic [2:0] {
     NOBIDERROR,
     ROUNDINACTIVE,
     INSUFFICIENTFUNDS,

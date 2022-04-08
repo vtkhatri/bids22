@@ -1,16 +1,16 @@
 .PHONY: all build sim
 
-SRC_FILES := $(shell find . -type f -name '*.sv')
-ifdef oops # making sure that interface files is compiled before normal file
-           # because all definitions required by bids22 are in bids22interface
-	SRC_FILES = bidsinterface.sv bids.sv
-endif
+# SRC_FILES := $(shell find . -type f -name '*.sv')
+# ifdef oops # making sure that interface files is compiled before normal file
+#            # because all definitions required by bids22 are in bids22interface
+SRC_FILES := bidsinterface.sv bids.sv
+# endif
 
 top_module := top
 vsim_args := -do "run -all"
 
 SUBMISSION_FILE := ece593bids22group4.zip
-REMOVABLE_STUFF := $(SUBMISSION_FILE) work/
+REMOVABLE_STUFF := $(SUBMISSION_FILE) work
 
 all: vlib vlog vsim zip
 
