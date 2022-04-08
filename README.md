@@ -28,3 +28,4 @@
     * `ROUNDSTARTED` - bids from bidders now accepted, *bidcost* is also subtracted here per bid
     * `ROUNDOVER` - decision on who won, goes to `READYNEXT`
     * `READYNEXT` - ¯\\\_(ツ)_/¯, goes to `LOCKED`
+### testplans (todo: deeksha)
