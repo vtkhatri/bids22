@@ -215,14 +215,17 @@ always_comb begin
                 if (mask[i] == 0) begin
                     $error("%0t - bidder[%0d] has been masked out", $time, i);
                     bidder[i].out.err = INVALIDREQUEST;
+                    bidder[i].out.ack = 0;
                 end
                 else begin
                     if (bidder[i].in.bidAmt + bidcost > bidder[i].value) begin
                         $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d)",
                                 $time, i, bidder[i].in.bidAmt, bidder[i].value, bidcost);
                         bidder[i].out.err = INSUFFICIENTFUNDS;
+                        bidder[i].out.ack = 0;
                     end else begin
                         bidder[i].out.err = NOBIDERROR;
+                        bidder[i].out.ack = 1;
                     end
                 end
             end
