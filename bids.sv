@@ -89,8 +89,10 @@ always@(posedge bif.clk or negedge bif.reset_n) begin
             ROUNDSTARTED: begin
                 for (int i=0; i<NUMBIDDERS; i++) begin
                     if (bidder[i].in.bid)
-                        if (bidder[i].value > bidder[i].in.bidAmt + bidcost)
+                        if (bidder[i].value > bidder[i].in.bidAmt + bidcost) begin
                             bidder[i].value <= bidder[i].value - (bidder[i].in.bidAmt + bidcost);
+                            bidder[i].lastbid <= bidder[i].in.bidAmt;
+                        end
                     else if (bidder[i].in.retract) bidder[i].lastbid <= 0;
                 end
             end
@@ -112,18 +114,16 @@ always_comb begin
         // ¯\_(ツ)_/¯
     end
     UNLOCKED: begin
-        if (bif.C_start) begin
-            nextState = UNLOCKED;
-        end
-        else if (bif.C_op == LOCK) nextState = LOCKED;
-        else                       nextState = UNLOCKED;
+        nextState = (bif.C_op == LOCK) ? LOCKED : UNLOCKED;
     end
     COOLDOWN: begin
         if (cooldownTimer !== 0) nextState = COOLDOWN;
         else                     nextState = LOCKED;
     end
     LOCKED: begin
-        nextState = (bif.C_start) ? ROUNDSTARTED : LOCKED;
+        if      (bif.C_start)                             nextState = ROUNDSTARTED;
+        else if (bif.C_op == UNLOCK && bif.C_data != key) nextState = COOLDOWN;
+        else                                              nextState = LOCKED;
     end
     ROUNDSTARTED:begin
         nextState = (bif.C_start) ? ROUNDSTARTED : ROUNDOVER;
@@ -149,7 +149,7 @@ always_comb begin
     end
 
     // reset values for fsm
-    bif.ready = 0;
+    bif.ready = 1; // ready in all states except round over when deciding maxbidder
     bif.err = NOERROR;
     bif.roundOver = 0;
     bif.maxBid = 0;
@@ -204,8 +204,7 @@ always_comb begin
         bif.err = BADKEY;
     end
     LOCKED: begin
-        // ready to start round now, C_start will be accepted now
-        bif.ready = 1;
+        // ¯\_(ツ)_/¯
     end
     ROUNDSTARTED:begin
         for (int i=0; i<NUMBIDDERS; i++) begin
@@ -226,7 +225,7 @@ always_comb begin
             end
         end
 
-        // also update maxbid, can be removed if not required
+        // also update maxbid every clock cycle
         for (int i=0; i<NUMBIDDERS; i++) begin
             if (bif.maxBid < bidder[i].lastbid) begin
                 bif.maxBid = bidder[i].lastbid;
@@ -234,6 +233,8 @@ always_comb begin
         end
     end
     ROUNDOVER:begin
+        // deciding who wins, so not ready for other inputs
+        bid.ready = 0;
         // looping through till maximum is found, maybe use better logic
         // to take advantage of the fact that there can be multiple cycles
         // before the decision is to be taken
@@ -248,6 +249,7 @@ always_comb begin
         end
     end
     READYNEXT: begin
+        // ¯\_(ツ)_/¯
     end
     endcase
 end
