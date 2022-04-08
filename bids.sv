@@ -90,8 +90,8 @@ always@(posedge bif.clk or negedge bif.reset_n) begin
                 for (int i=0; i<NUMBIDDERS; i++) begin
                     if (bidder[i].in.bid && mask[i])
                         if (bidder[i].value > bidder[i].in.bidAmt + bidcost) begin
-                            bidder[i].value <= bidder[i].value - bidcost;
-                            bidder[i].lastbid <= bidder[i].in.bidAmt;
+                            bidder[i].value <= bidder[i].value - bidcost; // only subtracting bidcost on successful bid
+                            bidder[i].lastbid <= bidder[i].in.bidAmt;     // storing amount of last successful bid
                         end
                     else if (bidder[i].in.retract) bidder[i].lastbid <= 0;
                 end

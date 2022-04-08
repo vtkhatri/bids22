@@ -1,11 +1,6 @@
 .PHONY: all build sim
 
-# SRC_FILES := $(shell find . -type f -name '*.sv')
-# ifdef oops # making sure that interface files is compiled before normal file
-#            # because all definitions required by bids22 are in bids22interface
 SRC_FILES := bidsinterface.sv bids.sv
-# endif
-
 top_module := top
 vsim_args := -do "run -all"
 

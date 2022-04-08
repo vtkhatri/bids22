@@ -2,16 +2,12 @@
 ## deeksha kamath, viraj khatri
 ### makefile
 * targets -
-  * `all` - do `vlib -> vlog -> vsim -> zip`
-  * `vlib` - make `work` library
-  * `vlog` - compile all files from `SRC_FILES`
-  * `vsim` - simulate `work.top` (has pre-requisite `vlog`)
-  * `zip` - make zipfile for submission
-  * `clean` - delete all deletable files
-* if `bids22.sv` is compiled before `bids22interface.sv`, do -
-```
-export oops=1 && make vlog
-```
+  * `all` - does `vlib -> vlog -> vsim -> zip`
+  * `vlib` - makes `work` library
+  * `vlog` - compiles all files listed in `SRC_FILES`
+  * `vsim` - simulates `work.top` (has pre-requisite `vlog`)
+  * `zip` - makes zipfile for submission
+  * `clean` - deletes all deletable files (`REMOVABLE_STUFF`)
 ### implementation
 * `bidsinterface.sv` - everything required for interface
   * `bids22defs`
@@ -25,7 +21,7 @@ export oops=1 && make vlog
     * default 3
     * X = `bidder[0]`, Y = `bidder[1]`, Z = `bidder[2]`
   * states -
-    * `RESET` - oh shit state, shouldn't end up here
+    * `RESET` - falisafe state, shouldn't never end up here
     * `UNLOCKED` - state on coming out of reset, allows setting up the parameters
     * `COOLDOWN` - wait state if wrong key was entered while unlocking, wait for *timer* countdown
     * `LOCKED` - expected state after providing key in unlocked state (default 0), bids22 accepts *C_start* now
