@@ -149,6 +149,8 @@ always_comb begin
     for (int i=0; i<NUMBIDDERS; i++) begin
         bidder[i].out.balance = bidder[i].value;
         bidder[i].out = 0; // reset values for bidders' output, it's a packed struct
+        // set invalid request every time C_start is low and bid is high
+        if (bif.C_start == 0 && bidder[i].in.bid == 1) bidder[i].out.err = INVALIDREQUEST;
     end
 
     // reset values for fsm
