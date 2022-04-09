@@ -29,3 +29,16 @@
     * `ROUNDOVER` - decision on who won, goes to `READYNEXT`
     * `READYNEXT` - ¯\\\_(ツ)_/¯, goes to `LOCKED`
 ### testplans (todo: deeksha)
+   - [ ] Testing for when X bids the highest amount, Y bids the highest amount and Z bids the highest amount. 
+- [ ] Testing for global errors - 1]. Trying to unlock with a bad key 
+                 				    2]. Trying to unlock whilst in unlocked state
+						    3]. C_start asserted when unlock state is functioning
+						    4]. Invalid operation when opcode is not matching the given list
+						    5]. Checking for when two bidders bid the same amount amounting to duplicate bids error
+
+- [ ] Testing for bidders’ errors -  1].
+                                                       2]. Testing for insufficient funds when the bid amount outweighs the value/balance for particular bidder
+							3]. Testing for mask for particular bidder goes zero at the same time bidder makes a bid
+
+- [ ] 
+						   
