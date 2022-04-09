@@ -12,7 +12,6 @@ all: vlib vlog vsim zip
 clean:
 	rm -fr $(REMOVABLE_STUFF)
 
-
 vlib:
 	vlib work
 
