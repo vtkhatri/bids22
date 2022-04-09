@@ -33,10 +33,10 @@
 * testing for global errors -
   * trying to unlock with a bad key
   * trying to unlock whilst in unlocked state
-	* `C_start` asserted when already in unlocked state
-	* invalid operation when opcode is not matching the given list
-	* checking for when two bidders bid the same amount amounting to duplicate bids error
+  * `C_start` asserted when already in unlocked state
+  * invalid operation when opcode is not matching the given list
+  * checking for when two bidders bid the same amount amounting to duplicate bids error
 * testing for bidders’ errors -
   * testing for insufficient funds when the bid amount outweighs the value/balance for particular bidder
-	* testing for mask for particular bidder goes zero at the same time bidder makes a bid
+  * testing for mask for particular bidder goes zero at the same time bidder makes a bid
   * testing for bids being placed when `C_start` is low
