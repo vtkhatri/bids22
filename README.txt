@@ -28,17 +28,15 @@
     * `ROUNDSTARTED` - bids from bidders now accepted, *bidcost* is also subtracted here per bid
     * `ROUNDOVER` - decision on who won, goes to `READYNEXT`
     * `READYNEXT` - ¯\\\_(ツ)_/¯, goes to `LOCKED`
-### testplans (todo: deeksha)
-   - [ ] Testing for when X bids the highest amount, Y bids the highest amount and Z bids the highest amount. 
-- [ ] Testing for global errors - 1]. Trying to unlock with a bad key 
-                 				    2]. Trying to unlock whilst in unlocked state
-						    3]. C_start asserted when unlock state is functioning
-						    4]. Invalid operation when opcode is not matching the given list
-						    5]. Checking for when two bidders bid the same amount amounting to duplicate bids error
-
-- [ ] Testing for bidders’ errors -  1].
-                                                       2]. Testing for insufficient funds when the bid amount outweighs the value/balance for particular bidder
-							3]. Testing for mask for particular bidder goes zero at the same time bidder makes a bid
-
-- [ ] 
-						   
+### testplans
+* testing for when X bids the highest amount, Y bids the highest amount and Z bids the highest amount
+* testing for global errors -
+  * trying to unlock with a bad key
+  * trying to unlock whilst in unlocked state
+	* `C_start` asserted when already in unlocked state
+	* invalid operation when opcode is not matching the given list
+	* checking for when two bidders bid the same amount amounting to duplicate bids error
+* testing for bidders’ errors -
+  * testing for insufficient funds when the bid amount outweighs the value/balance for particular bidder
+	* testing for mask for particular bidder goes zero at the same time bidder makes a bid
+  * testing for bids being placed when `C_start` is low
