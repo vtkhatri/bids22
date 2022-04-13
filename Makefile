@@ -7,7 +7,7 @@ vsim_args := -do "run -all"
 SUBMISSION_FILE := ece593bids22group4.zip
 REMOVABLE_STUFF := $(SUBMISSION_FILE) work
 
-all: vlib vlog vsim zip
+all: vlib vlog vsim
 
 clean:
 	rm -fr $(REMOVABLE_STUFF)

@@ -51,8 +51,10 @@ bidsrandomizer inrandoms = new;
 
 initial begin
     repeat(CLOCK_IDLE) @(posedge clk); // waiting for reset (2 clocks)
-    repeat (NUMTESTS) 
+    repeat (NUMTESTS) begin
         assert(inrandoms.randomize());
+        @(posedge clk);
+    end
     $finish();
 end
 
