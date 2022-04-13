@@ -40,3 +40,15 @@
   * testing for insufficient funds when the bid amount outweighs the value/balance for particular bidder
   * testing for mask for particular bidder goes zero at the same time bidder makes a bid
   * testing for bids being placed when `C_start` is low
+### input generation
+* class `bidsrandomizer`
+  * randomizes inputs to fsm and bidders
+    * `fsminputsrandomizer_t` struct used to declare `fsminputs_t` struct as `rand`
+    * `bidsinputsrandomizer_t` struct used to declare `NUMBIDDERS`x`biddersinputs_t` structs as `rand`
+  * no constraints for now
+### coverage
+* covergroup `bids22covergroup`
+  * coverpoints
+    * `DUV.state` - `illegal_bin` used to exclude `RESET` state from % coverage
+* simulation keeps simulating till 100% coverage encountered
+  * easy for now with 1 coverpoint, will take longer afterwards
