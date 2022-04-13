@@ -51,6 +51,19 @@ typedef struct packed {
     reg [DATAWIDTH-1:0] lastbid;
 } bidders_t;
 
+typedef struct packed {
+    bit [DATAWIDTH-1:0] C_data;
+    bit [3:0]           C_op;
+    bit                 C_start;
+} fsminputs_t;
+
+typedef struct packed {
+    bit ready;
+    outerrors_t err;
+    bit roundOver;
+    bit [DATAWIDTH-1:0] maxBid;
+} fsmoutputs_t;
+
 endpackage : bids22defs
 
 interface bids22interface (input logic clk, reset_n);
@@ -67,22 +80,24 @@ interface bids22interface (input logic clk, reset_n);
     biddersoutputs_t bidders_out[NUMBIDDERS];
     
     // fsm control signals
-    logic [DATAWIDTH-1:0] C_data;
-    logic [3:0] C_op;
-    logic C_start;
+    fsminputs_t cin;
+    // logic [DATAWIDTH-1:0] C_data;
+    // logic [3:0] C_op;
+    // logic C_start;
 
     // fsm relevant outputs
-    logic ready;
-    outerrors_t err;
-    logic roundOver;
-    logic [DATAWIDTH-1:0] maxBid;
+    fsmoutputs_t cout;
+    // logic ready;
+    // outerrors_t err;
+    // logic roundOver;
+    // logic [DATAWIDTH-1:0] maxBid;
 
     modport bidmaster(
         input bidders_in,
         output bidders_out,
 
-        input C_data, C_op, C_start,
-        output ready, err, roundOver, maxBid
+        input cin,
+        output cout
     );
     
 endinterface : bids22interface

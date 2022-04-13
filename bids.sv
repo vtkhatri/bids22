@@ -56,27 +56,27 @@ always@(posedge bif.clk or negedge bif.reset_n) begin
             end
             UNLOCKED: begin
                 cooldownTimer <= cooldownTimerValue; // if previous state was cooldown, then we need to
-                case (bif.C_op)                      // reset the cooldownTimer so that next fraudulent attempt
+                case (bif.cin.C_op)                  // reset the cooldownTimer so that next fraudulent attempt
                     LOCK: begin                      // is also put to correct cooldown duration
-                        key <= bif.C_data;
+                        key <= bif.cin.C_data;
                     end
                     LOADX: begin
-                        bidder[0].value <= bif.C_data;
+                        bidder[0].value <= bif.cin.C_data;
                     end
                     LOADY: begin
-                        bidder[1].value <= bif.C_data;
+                        bidder[1].value <= bif.cin.C_data;
                     end
                     LOADZ: begin
-                        bidder[2].value <= bif.C_data;
+                        bidder[2].value <= bif.cin.C_data;
                     end
                     SETMASK: begin
-                        mask <= bif.C_data;
+                        mask <= bif.cin.C_data;
                     end
                     SETTIMER: begin
-                        cooldownTimerValue <= bif.C_data;
+                        cooldownTimerValue <= bif.cin.C_data;
                     end
                     SETBIDCHARGE: begin
-                        bidcost <= bif.C_data;
+                        bidcost <= bif.cin.C_data;
                     end
                 endcase
             end
@@ -90,8 +90,8 @@ always@(posedge bif.clk or negedge bif.reset_n) begin
                 for (int i=0; i<NUMBIDDERS; i++) begin
                     if (bif.bidders_in[i].bid && mask[i])
                         if (bidder[i].value > bif.bidders_in[i].bidAmt + bidcost) begin
-                            bidder[i].value <= bidder[i].value - bidcost; // only subtracting bidcost on successful bid
-                            bidder[i].lastbid <= bif.bidders_in[i].bidAmt;     // storing amount of last successful bid
+                            bidder[i].value <= bidder[i].value - bidcost;  // only subtracting bidcost on successful bid
+                            bidder[i].lastbid <= bif.bidders_in[i].bidAmt; // storing amount of last successful bid
                         end
                     else if (bif.bidders_in[i].retract) bidder[i].lastbid <= 0;
                 end
@@ -118,18 +118,18 @@ always_comb begin
         // ¯\_(ツ)_/¯
     end
     UNLOCKED: begin
-        nextState = (bif.C_op == LOCK) ? LOCKED : UNLOCKED;
+        nextState = (bif.cin.C_op == LOCK) ? LOCKED : UNLOCKED;
     end
     COOLDOWN: begin
         nextState = (cooldownTimer != 0) ? COOLDOWN : LOCKED;
     end
     LOCKED: begin
-        if      (bif.C_start)                             nextState = ROUNDSTARTED;
-        else if (bif.C_op == UNLOCK && bif.C_data != key) nextState = COOLDOWN;
-        else                                              nextState = LOCKED;
+        if (bif.cin.C_start) nextState = ROUNDSTARTED;
+        else if (bif.cin.C_op == UNLOCK && bif.cin.C_data != key) nextState = COOLDOWN;
+        else nextState = LOCKED;
     end
     ROUNDSTARTED:begin
-        nextState = (bif.C_start) ? ROUNDSTARTED : ROUNDOVER;
+        nextState = (bif.cin.C_start) ? ROUNDSTARTED : ROUNDOVER;
     end
     ROUNDOVER:begin
         nextState = READYNEXT;
@@ -150,14 +150,14 @@ always_comb begin
         bif.bidders_out[i].balance = bidder[i].value;
         bif.bidders_out[i] = 0; // reset values for bidders' output, it's a packed struct
         // set invalid request every time C_start is low and bid is high
-        if (bif.C_start == 0 && bif.bidders_in[i].bid == 1) bif.bidders_out[i].err = INVALIDREQUEST;
+        if (bif.cin.C_start == 0 && bif.bidders_in[i].bid == 1) bif.bidders_out[i].err = INVALIDREQUEST;
     end
 
     // reset values for fsm
-    bif.ready = 1; // ready in all states except round over when deciding maxbidder
-    bif.err = NOERROR;
-    bif.roundOver = 0;
-    bif.maxBid = 0;
+    bif.cout.ready = 1; // ready in all states except round over when deciding maxbidder
+    bif.cout.err = NOERROR;
+    bif.cout.roundOver = 0;
+    bif.cout.maxBid = 0;
 
     case (state)
     RESET: begin
@@ -165,17 +165,17 @@ always_comb begin
         // ¯\_(ツ)_/¯
     end
     UNLOCKED: begin
-        if (bif.C_start) begin
+        if (bif.cin.C_start) begin
             $error("%0t - C_start asserted when state is UNLOCKED", $time);
-            bif.err = CSTARTWHENUNLOCKED;
+            bif.cout.err = CSTARTWHENUNLOCKED;
         end
         else begin
-            case (bif.C_op)
+            case (bif.cin.C_op)
                 NO_OP: begin
                 end
                 UNLOCK: begin
                     $error("%0t - already unlocked", $time);
-                    bif.err = ALREADYUNLOCKED;
+                    bif.cout.err = ALREADYUNLOCKED;
                 end
                 LOCK: begin
                     // ¯\_(ツ)_/¯
@@ -199,14 +199,14 @@ always_comb begin
                     // ¯\_(ツ)_/¯
                 end
                 default: begin
-                    $error("%0t - invalid opcode (%b) received in %p state", $time, bif.C_op, state);
-                    bif.err = INVALID_OP;
+                    $error("%0t - invalid opcode (%b) received in %p state", $time, bif.cin.C_op, state);
+                    bif.cout.err = INVALID_OP;
                 end
             endcase
         end
     end
     COOLDOWN: begin
-        bif.err = BADKEY;
+        bif.cout.err = BADKEY;
     end
     LOCKED: begin
         // ¯\_(ツ)_/¯
@@ -235,27 +235,27 @@ always_comb begin
 
         // also update maxbid every clock cycle
         for (int i=0; i<NUMBIDDERS; i++) begin
-            if (bif.maxBid < bidder[i].lastbid) begin
-                bif.maxBid = bidder[i].lastbid;
+            if (bif.cout.maxBid < bidder[i].lastbid) begin
+                bif.cout.maxBid = bidder[i].lastbid;
             end
         end
 
         // duplicate bids check for error output
         for (int i=0; i<NUMBIDDERS; i++) begin
             for (int j=i+1;j<NUMBIDDERS; j++) begin
-                if (bif.bidders_in[i].bidAmt == bidder[j].in.bidAmt) bif.err = DUPLICATEBIDS;
+                if (bif.bidders_in[i].bidAmt == bidder[j].in.bidAmt) bif.cout.err = DUPLICATEBIDS;
             end
         end
     end
     ROUNDOVER:begin
         // deciding who wins, so not ready for other inputs
-        bif.ready = 0;
+        bif.cout.ready = 0;
         // looping through till maximum is found, maybe use better logic
         // to take advantage of the fact that there can be multiple cycles
         // before the decision is to be taken
         for (int i=0; i<NUMBIDDERS; i++) begin
-            if (bif.maxBid < bidder[i].lastbid) begin
-                bif.maxBid = bidder[i].lastbid;
+            if (bif.cout.maxBid < bidder[i].lastbid) begin
+                bif.cout.maxBid = bidder[i].lastbid;
                 bif.bidders_out[i].win = 1;
                 for (int j=0; j<NUMBIDDERS; j++) begin
                     if (i != j) bif.bidders_out[j].win = 0;
