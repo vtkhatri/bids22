@@ -118,14 +118,14 @@ always_comb begin
         // ¯\_(ツ)_/¯
     end
     UNLOCKED: begin
-        nextState = (bif.cin.C_op == LOCK) ? LOCKED : UNLOCKED;
+        nextState = (bif.cin.C_op == bit'(LOCK)) ? LOCKED : UNLOCKED;
     end
     COOLDOWN: begin
         nextState = (cooldownTimer != 0) ? COOLDOWN : LOCKED;
     end
     LOCKED: begin
         if (bif.cin.C_start) nextState = ROUNDSTARTED;
-        else if (bif.cin.C_op == UNLOCK && bif.cin.C_data != key) nextState = COOLDOWN;
+        else if (bif.cin.C_op == bit'(UNLOCK) && bif.cin.C_data != key) nextState = COOLDOWN;
         else nextState = LOCKED;
     end
     ROUNDSTARTED:begin
