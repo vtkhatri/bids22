@@ -1,6 +1,6 @@
 import bids22defs::*;
 
-module bids22(bids22interface bif);
+module bids22(bids22interface bif, input clk, reset_n);
 
 parameter DATAWIDTH = 32;
 parameter NUMBIDDERS = 3;
@@ -12,9 +12,9 @@ bidders_t bidder[NUMBIDDERS]; // TODO : parameterized implementation for number 
 // assign bidder[1].in = bif.bidders_in[1];
 // assign bidder[2].in = bif.bidders_in[2];
 // giving FSM outputs as bidders_t structure's outputs
-assign bif.bidders_out[0] = bidder[0].out;
-assign bif.bidders_out[1] = bidder[1].out;
-assign bif.bidders_out[2] = bidder[2].out;
+// assign bif.bidders_out[0] = bidder[0].out;
+// assign bif.bidders_out[1] = bidder[1].out;
+// assign bif.bidders_out[2] = bidder[2].out;
 
 // misc fsm registers
 logic [DATAWIDTH-1:0] timer, cooldownTimer, cooldownTimerValue, key, bidcost;
@@ -35,8 +35,8 @@ typedef enum logic [2:0] {
 states_t state, nextState;
 
 // fsm
-always@(posedge bif.clk or negedge bif.reset_n) begin
-    if (~bif.reset_n) begin
+always@(posedge clk or negedge reset_n) begin
+    if (~reset_n) begin
         state <= UNLOCKED;
         for (int i=0; i<NUMBIDDERS; i++) begin
             bidder[i].value <= 0;
