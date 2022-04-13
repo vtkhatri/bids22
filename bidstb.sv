@@ -1,7 +1,7 @@
 import bids22defs::*;
 module top;
 
-parameter  NUMTESTS   = 10;
+parameter  NUMTESTS   = 100;
 parameter  NUMBIDDERS = 3;
 parameter  DATAWIDTH  = 32;
 localparam BIDAMTBITS = DATAWIDTH/2;
@@ -73,7 +73,7 @@ end
 // monitors
 //
 initial begin
-    $monitor("%0t - %p", $time, biftb);
+    $monitor("%0t - biftb - %p\n\t state,ns = %p,%p", $time, biftb, DUV.state, DUV.nextState);
 end
 
 endmodule : top
