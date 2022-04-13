@@ -62,6 +62,8 @@ initial begin
     repeat(CLOCK_IDLE) @(posedge clk); // waiting for reset (2 clocks)
     repeat (NUMTESTS) begin
         assert(inrandoms.randomize());
+        biftb.bidders_in = inrandoms.randbidsinputs;
+        biftb.cin        = inrandoms.randfsminputs;
         @(posedge clk);
     end
     $finish();
