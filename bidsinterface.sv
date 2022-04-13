@@ -4,6 +4,16 @@ parameter DATAWIDTH = 32;
 localparam BIDAMTBITS = DATAWIDTH/2;
 
 typedef enum logic [2:0] {
+    RESET,
+    UNLOCKED,
+    COOLDOWN,
+    LOCKED,
+    ROUNDSTARTED,
+    ROUNDOVER,
+    READYNEXT
+} states_t;
+
+typedef enum logic [2:0] {
     NOERROR,
     BADKEY,
     ALREADYUNLOCKED,

@@ -50,22 +50,33 @@ endclass : bidsrandomizer
 //
 // covergroups
 //
-covergroup fsmcovergroup@(posedge clk);
-endgroup : fsmcovergroup
+covergroup bids22covergroup@(posedge clk);
+    // option.at_least = 2;
+    coverstates: coverpoint DUV.state{
+        illegal_bins impossible_state = {RESET};
+    }
+endgroup : bids22covergroup
 
-bidsrandomizer inrandoms = new;
+bidsrandomizer   inrandoms = new;
+bids22covergroup bids22cg = new;
+
+static int coverage;
 
 //
 // random bidder and fsm inputs
 //
 initial begin
     repeat(CLOCK_IDLE) @(posedge clk); // waiting for reset (2 clocks)
-    repeat (NUMTESTS) begin
+    // repeat (NUMTESTS) begin
+    do begin
         assert(inrandoms.randomize());
         biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
         biftb.cin        = inrandoms.randfsminputs.fsminputs;
         @(posedge clk);
+        coverage = bids22cg.get_coverage();
     end
+    while (coverage < 100);
+    // end
     $finish();
 end
 
@@ -73,7 +84,7 @@ end
 // monitors
 //
 initial begin
-    $monitor("%0t - biftb - %p\n\t state,ns = %p,%p", $time, biftb, DUV.state, DUV.nextState);
+    $monitor("%0t -\n\tcoverage - %0d\n\tbiftb - %p\n\t state,ns = %p,%p", $time, coverage, biftb, DUV.state, DUV.nextState);
 end
 
 endmodule : top

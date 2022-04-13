@@ -22,16 +22,6 @@ logic [NUMBIDDERS-1:0] mask;
 
 assign timer = cooldownTimer; // better code readability with following "spec"
 
-typedef enum logic [2:0] {
-    RESET,
-    UNLOCKED,
-    COOLDOWN,
-    LOCKED,
-    ROUNDSTARTED,
-    ROUNDOVER,
-    READYNEXT
-} states_t;
-
 states_t state, nextState;
 
 // fsm
