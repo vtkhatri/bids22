@@ -75,9 +75,9 @@ interface bids22interface (input logic clk, reset_n);
     // actual bidders
     // bidders_t X, Y, Z;
     // biddersinputs_t X_in, Y_in, Z_in;
-    biddersinputs_t bidders_in[NUMBIDDERS];
+    biddersinputs_t  [NUMBIDDERS-1:0] bidders_in;
     // biddersoutputs_t X_out, Y_out, Z_out;
-    biddersoutputs_t bidders_out[NUMBIDDERS];
+    biddersoutputs_t [NUMBIDDERS-1:0] bidders_out;
     
     // fsm control signals
     fsminputs_t cin;

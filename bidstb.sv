@@ -22,7 +22,7 @@ initial begin
 end
 
 //
-// stimulus
+// reset and other stimulus
 //
 initial begin : resetblock
     reset_n = 1;
@@ -32,7 +32,7 @@ initial begin : resetblock
 end           : resetblock
 
 //
-// random inputs
+// randomization of inputs
 //
 typedef struct {
     rand fsminputs_t fsminputs;
@@ -47,8 +47,17 @@ class bidsrandomizer;
     rand bidsinputsrandomizer_t randbidsinputs;
 endclass : bidsrandomizer
 
+//
+// covergroups
+//
+covergroup fsmcovergroup@(posedge clk);
+endgroup : fsmcovergroup
+
 bidsrandomizer inrandoms = new;
 
+//
+// random bidder and fsm inputs
+//
 initial begin
     repeat(CLOCK_IDLE) @(posedge clk); // waiting for reset (2 clocks)
     repeat (NUMTESTS) begin
@@ -56,6 +65,13 @@ initial begin
         @(posedge clk);
     end
     $finish();
+end
+
+//
+// monitors
+//
+initial begin
+    $monitor("%0t - %p", $time, biftb);
 end
 
 endmodule : top
