@@ -8,13 +8,13 @@ parameter NUMBIDDERS = 3;
 bidders_t bidder[NUMBIDDERS]; // TODO : parameterized implementation for number of bidders
 
 // taking inputs into the bidders_t structure
-assign bidder[0].in = bif.X_in;
-assign bidder[1].in = bif.Y_in;
-assign bidder[2].in = bif.Z_in;
+// assign bidder[0].in = bif.bidders_in[0];
+// assign bidder[1].in = bif.bidders_in[1];
+// assign bidder[2].in = bif.bidders_in[2];
 // giving FSM outputs as bidders_t structure's outputs
-assign bif.X_out = bidder[0].out;
-assign bif.Y_out = bidder[1].out;
-assign bif.Z_out = bidder[2].out;
+assign bif.bidders_out[0] = bidder[0].out;
+assign bif.bidders_out[1] = bidder[1].out;
+assign bif.bidders_out[2] = bidder[2].out;
 
 // misc fsm registers
 logic [DATAWIDTH-1:0] timer, cooldownTimer, cooldownTimerValue, key, bidcost;
@@ -88,18 +88,18 @@ always@(posedge bif.clk or negedge bif.reset_n) begin
             end
             ROUNDSTARTED: begin
                 for (int i=0; i<NUMBIDDERS; i++) begin
-                    if (bidder[i].in.bid && mask[i])
-                        if (bidder[i].value > bidder[i].in.bidAmt + bidcost) begin
+                    if (bif.bidders_in[i].bid && mask[i])
+                        if (bidder[i].value > bif.bidders_in[i].bidAmt + bidcost) begin
                             bidder[i].value <= bidder[i].value - bidcost; // only subtracting bidcost on successful bid
-                            bidder[i].lastbid <= bidder[i].in.bidAmt;     // storing amount of last successful bid
+                            bidder[i].lastbid <= bif.bidders_in[i].bidAmt;     // storing amount of last successful bid
                         end
-                    else if (bidder[i].in.retract) bidder[i].lastbid <= 0;
+                    else if (bif.bidders_in[i].retract) bidder[i].lastbid <= 0;
                 end
             end
             ROUNDOVER: begin
                 for (int i=0; i<NUMBIDDERS; i++) begin
                     // hopefully there's not more than 1 winner
-                    if (bidder[i].out.win == 1) bidder[i].value <= bidder[i].value - bidder[i].lastbid;
+                    if (bif.bidders_out[i].win == 1) bidder[i].value <= bidder[i].value - bidder[i].lastbid;
                 end
                 // ¯\_(ツ)_/¯
             end
@@ -147,10 +147,10 @@ end
 always_comb begin
     // equivalent to assign statements
     for (int i=0; i<NUMBIDDERS; i++) begin
-        bidder[i].out.balance = bidder[i].value;
-        bidder[i].out = 0; // reset values for bidders' output, it's a packed struct
+        bif.bidders_out[i].balance = bidder[i].value;
+        bif.bidders_out[i] = 0; // reset values for bidders' output, it's a packed struct
         // set invalid request every time C_start is low and bid is high
-        if (bif.C_start == 0 && bidder[i].in.bid == 1) bidder[i].out.err = INVALIDREQUEST;
+        if (bif.C_start == 0 && bif.bidders_in[i].bid == 1) bif.bidders_out[i].err = INVALIDREQUEST;
     end
 
     // reset values for fsm
@@ -213,21 +213,21 @@ always_comb begin
     end
     ROUNDSTARTED:begin
         for (int i=0; i<NUMBIDDERS; i++) begin
-            if (bidder[i].in.bid) begin
+            if (bif.bidders_in[i].bid) begin
                 if (mask[i] == 0) begin
                     $error("%0t - bidder[%0d] has been masked out", $time, i);
-                    bidder[i].out.err = INVALIDREQUEST;
-                    bidder[i].out.ack = 0;
+                    bif.bidders_out[i].err = INVALIDREQUEST;
+                    bif.bidders_out[i].ack = 0;
                 end
                 else begin
-                    if (bidder[i].in.bidAmt + bidcost > bidder[i].value) begin
+                    if (bif.bidders_in[i].bidAmt + bidcost > bidder[i].value) begin
                         $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d)",
-                                $time, i, bidder[i].in.bidAmt, bidder[i].value, bidcost);
-                        bidder[i].out.err = INSUFFICIENTFUNDS;
-                        bidder[i].out.ack = 0;
+                                $time, i, bif.bidders_in[i].bidAmt, bidder[i].value, bidcost);
+                        bif.bidders_out[i].err = INSUFFICIENTFUNDS;
+                        bif.bidders_out[i].ack = 0;
                     end else begin
-                        bidder[i].out.err = NOBIDERROR;
-                        bidder[i].out.ack = 1;
+                        bif.bidders_out[i].err = NOBIDERROR;
+                        bif.bidders_out[i].ack = 1;
                     end
                 end
             end
@@ -243,22 +243,22 @@ always_comb begin
         // duplicate bids check for error output
         for (int i=0; i<NUMBIDDERS; i++) begin
             for (int j=i+1;j<NUMBIDDERS; j++) begin
-                if (bidder[i].in.bidAmt == bidder[j].in.bidAmt) bif.err = DUPLICATEBIDS;
+                if (bif.bidders_in[i].bidAmt == bidder[j].in.bidAmt) bif.err = DUPLICATEBIDS;
             end
         end
     end
     ROUNDOVER:begin
         // deciding who wins, so not ready for other inputs
-        bid.ready = 0;
+        bif.ready = 0;
         // looping through till maximum is found, maybe use better logic
         // to take advantage of the fact that there can be multiple cycles
         // before the decision is to be taken
         for (int i=0; i<NUMBIDDERS; i++) begin
             if (bif.maxBid < bidder[i].lastbid) begin
                 bif.maxBid = bidder[i].lastbid;
-                bidder[i].out.win = 1;
+                bif.bidders_out[i].win = 1;
                 for (int j=0; j<NUMBIDDERS; j++) begin
-                    if (i != j) bidder[j].out.win = 0;
+                    if (i != j) bif.bidders_out[j].win = 0;
                 end
             end
         end
