@@ -1,6 +1,6 @@
 .PHONY: all build sim
 
-SRC_FILES := bidsinterface.sv bids.sv
+SRC_FILES := bidsinterface.sv bids.sv bidstb.sv
 top_module := top
 vsim_args := -do "run -all"
 
