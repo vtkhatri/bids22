@@ -45,9 +45,6 @@ typedef struct {
 class bidsrandomizer;
     rand fsminputsrandomizer_t  randfsminputs;
     rand bidsinputsrandomizer_t randbidsinputs;
-
-    // constraint cooldownlimit {(randfsminputs.fsminputs.C_op == SETTIMER && randfsminputs.fsminputs.C_data < 20)}
-    // constraint cooldownlimit { randfsminputs.fsminputs.C_data < 20; }
 endclass : bidsrandomizer
 
 //
@@ -96,10 +93,11 @@ initial begin
     repeat(CLOCK_IDLE) @(negedge clk); // waiting for reset (2 clocks)
 
     // test state coverage
-    // $monitor("%0t -\n\tstatecoverage - %0d, biddercoverage - %0d, errorcoverage - %0d\
-    //           \n\tbiftb - %p\n\t bidders - %p\n\tstate,ns - %p,%p\n\tkey - %0d",
-    //           $time, statecoverage, bidercoverage, errorcoverage, biftb, DUV.bidder, DUV.state, DUV.nextState, DUV.key);
     $monitor("%0t - statecoverage - %0d, biddercoverage - %0d, errorcoverage - %0d", $time, statecoverage, bidercoverage, errorcoverage);
+    if ($test$plusargs("datadump"))
+        $monitor("%0t -\n\tstatecoverage - %0d, biddercoverage - %0d, errorcoverage - %0d\
+                  \n\tbiftb - %p\n\t bidders - %p\n\tstate,ns - %p,%p\n\tkey - %0d",
+                  $time, statecoverage, bidercoverage, errorcoverage, biftb, DUV.bidder, DUV.state, DUV.nextState, DUV.key);
 
     // making everyone win atleast once
     makeAllBiddersWin();
@@ -176,5 +174,5 @@ task makeAllBiddersWin();
     @(negedge clk);
 
     return;
-endtask : makeAllWin
+endtask : makeAllBiddersWin
 endmodule : top

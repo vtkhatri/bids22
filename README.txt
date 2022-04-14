@@ -50,5 +50,7 @@
 * covergroup `bids22covergroup`
   * coverpoints
     * `DUV.state` - `illegal_bin` used to exclude `RESET` state from % coverage
-* simulation keeps simulating till 100% coverage encountered
-  * easy for now with 1 coverpoint, will take longer afterwards
+* simulation will try to continue till it gets to 100% coverage
+  * not happened after 30mins of simulation
+  * to stop, use `Ctrl-c`, this will stop `vcover` from creating coverage report from ucdb
+  * use `make vcover` to get coverage report manually if simulation stopped
