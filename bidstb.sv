@@ -27,9 +27,9 @@ end
 initial begin : resetblock
     reset_n = 1;
     reset_n = 0;
-    repeat (CLOCK_IDLE) @(posedge clk); // under reset for 2 clocks
+    repeat (CLOCK_IDLE) @(negedge clk); // under reset for 2 clocks
     reset_n = 1;
-end           : resetblock
+end : resetblock
 
 //
 // randomization of inputs
@@ -66,13 +66,13 @@ static int coverage;
 // random bidder and fsm inputs
 //
 initial begin
-    repeat(CLOCK_IDLE) @(posedge clk); // waiting for reset (2 clocks)
+    repeat(CLOCK_IDLE) @(negedge clk); // waiting for reset (2 clocks)
     // repeat (NUMTESTS) begin
     do begin
         assert(inrandoms.randomize());
         biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
         biftb.cin        = inrandoms.randfsminputs.fsminputs;
-        @(posedge clk);
+        @(negedge clk);
         coverage = bids22cg.get_coverage();
     end
     while (coverage < 100);
