@@ -7,15 +7,6 @@ parameter NUMBIDDERS = 3;
 
 bidders_t bidder[NUMBIDDERS]; // TODO : parameterized implementation for number of bidders
 
-// taking inputs into the bidders_t structure
-// assign bidder[0].in = bif.bidders_in[0];
-// assign bidder[1].in = bif.bidders_in[1];
-// assign bidder[2].in = bif.bidders_in[2];
-// giving FSM outputs as bidders_t structure's outputs
-// assign bif.bidders_out[0] = bidder[0].out;
-// assign bif.bidders_out[1] = bidder[1].out;
-// assign bif.bidders_out[2] = bidder[2].out;
-
 // misc fsm registers
 logic [DATAWIDTH-1:0] timer, cooldownTimer, cooldownTimerValue, key, bidcost;
 logic [NUMBIDDERS-1:0] mask;
@@ -90,6 +81,8 @@ always@(posedge clk or negedge reset_n) begin
                 for (int i=0; i<NUMBIDDERS; i++) begin
                     // hopefully there's not more than 1 winner
                     if (bif.bidders_out[i].win == 1) bidder[i].value <= bidder[i].value - bidder[i].lastbid;
+                    // resetting lastbid register
+                    bidder[i].lastbid <= 0;
                 end
                 // ¯\_(ツ)_/¯
             end
@@ -242,6 +235,7 @@ always_comb begin
         end
     end
     ROUNDOVER:begin
+        bif.cout.roundOver = 1;
         // deciding who wins, so not ready for other inputs
         bif.cout.ready = 0;
         // looping through till maximum is found, maybe use better logic
