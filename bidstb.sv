@@ -18,10 +18,7 @@ localparam CLOCK_WIDTH  = CLOCK_PERIOD/2;
 parameter  CLOCK_IDLE   = 2;
 initial begin
     clk = 1;
-    forever begin
-        #CLOCK_WIDTH;
-        clk = ~clk;
-    end
+    forever #CLOCK_WIDTH clk = ~clk;
 end
 
 //
@@ -106,7 +103,7 @@ initial begin
 
     // making everyone win atleast once
     makeAllBiddersWin();
-    
+
     do begin
         assert(inrandoms.randomize());
         biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
