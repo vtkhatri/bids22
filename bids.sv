@@ -78,8 +78,8 @@ always@(posedge clk or negedge reset_n) begin
             end
             ROUNDSTARTED: begin
                 for (int i=0; i<NUMBIDDERS; i++) begin
-                    if (bif.bidders_in[i].bid && mask[i])
-                        if (bidder[i].value > bif.bidders_in[i].bidAmt + bidcost) begin
+                    if (bif.bidders_in[i].bid && mask[i] && bif.bidders_out[i].ack)
+                        if (bidder[i].value >= bif.bidders_in[i].bidAmt + bidcost) begin
                             bidder[i].value <= bidder[i].value - bidcost;  // only subtracting bidcost on successful bid
                             bidder[i].lastbid <= bif.bidders_in[i].bidAmt; // storing amount of last successful bid
                         end
@@ -108,14 +108,14 @@ always_comb begin
         // ¯\_(ツ)_/¯
     end
     UNLOCKED: begin
-        nextState = (bif.cin.C_op == bit'(LOCK)) ? LOCKED : UNLOCKED;
+        nextState = (bif.cin.C_op == LOCK) ? LOCKED : UNLOCKED;
     end
     COOLDOWN: begin
         nextState = (cooldownTimer != 0) ? COOLDOWN : LOCKED;
     end
     LOCKED: begin
         if (bif.cin.C_start) nextState = ROUNDSTARTED;
-        else if (bif.cin.C_op == bit'(UNLOCK) && bif.cin.C_data != key) nextState = COOLDOWN;
+        else if (bif.cin.C_op == UNLOCK && bif.cin.C_data != key) nextState = COOLDOWN;
         else nextState = LOCKED;
     end
     ROUNDSTARTED:begin
@@ -151,12 +151,12 @@ always_comb begin
 
     case (state)
     RESET: begin
-        $error("%0t - should never enter RESET state, check", $time);
+        if ($test$plusargs("printerrors")) $error("%0t - should never enter RESET state, check", $time);
         // ¯\_(ツ)_/¯
     end
     UNLOCKED: begin
         if (bif.cin.C_start) begin
-            $error("%0t - C_start asserted when state is UNLOCKED", $time);
+            if ($test$plusargs("printerrors")) $error("%0t - C_start asserted when state is UNLOCKED", $time);
             bif.cout.err = CSTARTWHENUNLOCKED;
         end
         else begin
@@ -164,7 +164,7 @@ always_comb begin
                 NO_OP: begin
                 end
                 UNLOCK: begin
-                    $error("%0t - already unlocked", $time);
+                    if ($test$plusargs("printerrors")) $error("%0t - already unlocked", $time);
                     bif.cout.err = ALREADYUNLOCKED;
                 end
                 LOCK: begin
@@ -189,7 +189,7 @@ always_comb begin
                     // ¯\_(ツ)_/¯
                 end
                 default: begin
-                    $error("%0t - invalid opcode (%b) received in %p state", $time, bif.cin.C_op, state);
+                    if ($test$plusargs("printerrors")) $error("%0t - invalid opcode (%b) received in %p state", $time, bif.cin.C_op, state);
                     bif.cout.err = INVALID_OP;
                 end
             endcase
@@ -205,14 +205,15 @@ always_comb begin
         for (int i=0; i<NUMBIDDERS; i++) begin
             if (bif.bidders_in[i].bid) begin
                 if (mask[i] == 0) begin
-                    $error("%0t - bidder[%0d] has been masked out", $time, i);
+                    if ($test$plusargs("printerrors")) $error("%0t - bidder[%0d] has been masked out", $time, i);
                     bif.bidders_out[i].err = INVALIDREQUEST;
                     bif.bidders_out[i].ack = 0;
                 end
                 else begin
-                    if (bif.bidders_in[i].bidAmt + bidcost > bidder[i].value) begin
-                        $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d)",
-                                $time, i, bif.bidders_in[i].bidAmt, bidder[i].value, bidcost);
+                    if (bif.bidders_in[i].bidAmt + bidcost >= bidder[i].value) begin
+                        if ($test$plusargs("printerrors"))
+                            $error("%0t - insufficient funds for bidder[%0d] (bidAmt=%0d, value=%0d, bidCharge=%0d)",
+                                   $time, i, bif.bidders_in[i].bidAmt, bidder[i].value, bidcost);
                         bif.bidders_out[i].err = INSUFFICIENTFUNDS;
                         bif.bidders_out[i].ack = 0;
                     end else begin
@@ -233,7 +234,10 @@ always_comb begin
         // duplicate bids check for error output
         for (int i=0; i<NUMBIDDERS; i++) begin
             for (int j=i+1;j<NUMBIDDERS; j++) begin
-                if (bif.bidders_in[i].bidAmt == bidder[j].in.bidAmt) bif.cout.err = DUPLICATEBIDS;
+                if (bif.bidders_in[i].bidAmt == bidder[j].in.bidAmt) begin
+                    bif.cout.err = DUPLICATEBIDS;
+                    bif.bidders_out[i].ack = 0;
+                end
             end
         end
     end
