@@ -1,4 +1,4 @@
-.PHONY: all build sim
+.PHONY: all build sim clean
 
 SRC_FILES := bidsinterface.sv bids.sv bidstb.sv
 COVERAGE_FILE   := coverage.ucdb
@@ -8,11 +8,17 @@ top_module := top
 vsim_args := -do "coverage save -onexit $(COVERAGE_FILE) ; run -all"
 
 SUBMISSION_FILE := ece593bids22group4.zip
-REMOVABLE_STUFF := $(SUBMISSION_FILE) work \
+REMOVABLE_STUFF := \
+	work/ \
+	$(SUBMISSION_FILE) \
 	$(COVERAGE_FILE) \
 	$(COVERAGE_REPORT)
 
 all: vlib vlog vsim vcover
+
+build: vlog
+
+sim: vsim vcover
 
 clean:
 	rm -fr $(REMOVABLE_STUFF)
