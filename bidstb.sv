@@ -1,7 +1,6 @@
 import bids22defs::*;
 module top;
 
-parameter  NUMTESTS   = 100;
 parameter  NUMBIDDERS = 3;
 parameter  DATAWIDTH  = 32;
 localparam BIDAMTBITS = DATAWIDTH/2;
@@ -85,12 +84,22 @@ static int statecoverage;
 static int bidercoverage;
 static int errorcoverage;
 
+static int currentruns, runs;
+
 initial begin
+    // tracking maxruns
+    currentruns = 0;
+    runs = 10000;
+    $value$plusargs("RUNS=%d", runs);
+
+    // resetting fsm inputs
     biftb.cin = 0;
     biftb.bidders_in[0] = 0;
     biftb.bidders_in[1] = 0;
     biftb.bidders_in[2] = 0;
-    repeat(CLOCK_IDLE) @(negedge clk); // waiting for reset (2 clocks)
+
+    // waiting for reset (2 clocks)
+    repeat(CLOCK_IDLE) @(negedge clk);
 
     // test state coverage
     $monitor("%0t - statecoverage - %0d, biddercoverage - %0d, errorcoverage - %0d", $time, statecoverage, bidercoverage, errorcoverage);
@@ -100,19 +109,24 @@ initial begin
                   $time, statecoverage, bidercoverage, errorcoverage, biftb, DUV.bidder, DUV.state, DUV.nextState, DUV.key);
 
     // making everyone win atleast once
-    makeAllBiddersWin();
+    // makeAllBiddersWin();
 
     do begin
         assert(inrandoms.randomize());
+
         biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
         biftb.cin        = inrandoms.randfsminputs.fsminputs;
+
         @(negedge clk);
+
         statecoverage = statecg.get_coverage();
         bidercoverage = biddercg.get_coverage();
         errorcoverage = errorcg.get_coverage();
+        currentruns++;
     end
-    while (statecoverage < 100 || errorcoverage < 100 || bidercoverage < 100);
+    while ((statecoverage < 100 || errorcoverage < 100 || bidercoverage < 100) && currentruns < runs);
 
+    if (currentruns == runs) $display("run limit (%0d) reached, quitting.", runs);
 
     $finish();
 end

@@ -49,8 +49,15 @@
 ### coverage
 * covergroup `bids22covergroup`
   * coverpoints
-    * `DUV.state` - `illegal_bin` used to exclude `RESET` state from % coverage
-* simulation will try to continue till it gets to 100% coverage
-  * not happened after 30mins of simulation
-  * to stop, use `Ctrl-c`, this will stop `vcover` from creating coverage report from ucdb
-  * use `make vcover` to get coverage report manually if simulation stopped
+    * `coverstates` - `illegal_bin` used to exclude `RESET` state from % coverage
+    * todo : check for state transitions
+* covergroup `bids22coverbidders`
+  * coverpoints
+    * 3x cover bidders winning - covering all bidders winning atleast once
+* covergroup `bids22outerrors`
+  * coverpoints
+    * `coverfsmerrors` - check all fsm errors occuring
+    * 3x cover bidders errors - check all errors occuring per bidder
+* simulation will try to continue till it gets to 100% coverage or `RUNS` reaches a value
+  * can specify value maximum runs with `make RUNS=<value>`
+  * defaults to `RUNS=10000`
