@@ -10,7 +10,10 @@ PRINTAFTERTESTS := 1000
 top_module := top
 vsim_args := \
 	-do "coverage save -onexit $(COVERAGE_FILE) ; run -all" \
-	+RUNS=$(RUNS) +PRINTAFTERTESTS=$(PRINTAFTERTESTS)
+	+RUNS=$(RUNS) +PRINTAFTERTESTS=$(PRINTAFTERTESTS) \
+	+cover=scf
+
+# cover => s statement, c condition, f fsm
 
 SUBMISSION_FILE := ece593bids22group4.zip
 REMOVABLE_STUFF := \
