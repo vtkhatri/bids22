@@ -186,21 +186,6 @@ initial begin
     lock(`KEY);
     randtillcomplete();
 
-    completiontracker.currentruns = 0;
-    unlock(`KEY);
-
-    @(negedge clk);
-    biftb.cin.C_op = SETMASK; // masking out a bidder
-    biftb.cin.C_data = 3;     // 011
-    @(negedge clk);
-    milliontokens();
-    lock(`KEY);
-    randtillcomplete();
-
-    completiontracker.currentruns = 0;
-    unlock(`KEY);
-    randtillcomplete();
-
     if (completiontracker.currentruns >= completiontracker.runs) $display("run limit (%0d) reached, quitting.", completiontracker.runs);
 
     $finish();
