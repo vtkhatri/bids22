@@ -1,5 +1,43 @@
 # implementation of bids22 - group 4
 ## deeksha kamath, viraj khatri
+---
+## assignment 2
+### input generation
+* class `bidsrandomizer`
+  * randomizes inputs to fsm and bidders
+    * `fsminputsrandomizer_t` struct used to declare `fsminputs_t` struct as `rand`
+    * `bidsinputsrandomizer_t` struct used to declare `NUMBIDDERS`x`biddersinputs_t` structs as `rand`
+  * no constraints for now
+### random testing setup
+* upon reset, do not start randomization instantly
+* give every bidder a million tokens (`milliontokens()`)
+* lock device with key (`lock(KEY)`)
+* randomize till 100% coverage or number of runs exhausted
+### coverage
+* simulation will try to continue till it gets to 100% coverage or `RUNS` reaches a value
+  * can specify value maximum runs with `make RUNS=<value>` (default 10000)
+  * can reduce / increase prints with `make PRINTAFTERTESTS=<value>` (default 1000)
+* covergroup `bids22covergroup`
+  * coverpoints
+    * `coverstates` - `illegal_bin` used to exclude `RESET` state from % coverage
+    * `coverstatetransitions` - as name states
+* covergroup `bids22coverbidders`
+  * coverpoints
+    * 3x cover bidders winning - covering all bidders winning atleast once
+* covergroup `bids22outerrors`
+  * coverpoints
+    * `coverfsmerrors` - check all fsm errors occuring
+    * 3x cover bidders errors - check all errors occuring per bidder
+* report - `coverage.report`
+  * detailed explanation of all bins and coverages at the start
+  * summary of all types of coverages at the end
+    * condition coverage
+    * covergroups coverage
+    * FSM state coverage
+    * FSM state transition coverage
+    * statement coverage
+---
+## assignment 1
 ### makefile
 * targets -
   * `all` - does `vlib -> vlog -> vsim -> zip`
@@ -40,27 +78,3 @@
   * testing for insufficient funds when the bid amount outweighs the value/balance for particular bidder
   * testing for mask for particular bidder goes zero at the same time bidder makes a bid
   * testing for bids being placed when `C_start` is low
----
-## assignment 2
-### input generation
-* class `bidsrandomizer`
-  * randomizes inputs to fsm and bidders
-    * `fsminputsrandomizer_t` struct used to declare `fsminputs_t` struct as `rand`
-    * `bidsinputsrandomizer_t` struct used to declare `NUMBIDDERS`x`biddersinputs_t` structs as `rand`
-  * no constraints for now
-### coverage
-* simulation will try to continue till it gets to 100% coverage or `RUNS` reaches a value
-  * can specify value maximum runs with `make RUNS=<value>`
-  * defaults to `RUNS=10000`
-  * can reduce / increase prints with `make PRINTAFTERTESTS=<value>`
-* covergroup `bids22covergroup`
-  * coverpoints
-    * `coverstates` - `illegal_bin` used to exclude `RESET` state from % coverage
-    * todo : check for state transitions
-* covergroup `bids22coverbidders`
-  * coverpoints
-    * 3x cover bidders winning - covering all bidders winning atleast once
-* covergroup `bids22outerrors`
-  * coverpoints
-    * `coverfsmerrors` - check all fsm errors occuring
-    * 3x cover bidders errors - check all errors occuring per bidder
