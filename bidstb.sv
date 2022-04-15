@@ -50,7 +50,7 @@ endclass : bidsrandomizer
 // covergroups
 //
 covergroup bids22coverstates@(posedge clk);
-    option.at_least = 2;
+    option.at_least = 1;
     coverstates: coverpoint DUV.state {
         illegal_bins RESET = {RESET};
     }
@@ -166,6 +166,8 @@ endclass
 
 overlord completiontracker = new;
 
+`define KEY 17
+
 initial begin
     // resetting fsm inputs
     biftb.cin = 0;
@@ -176,32 +178,28 @@ initial begin
     // waiting for reset (2 clocks)
     repeat(CLOCK_IDLE) @(negedge clk);
 
-    // test state coverage
-    // $monitor("%0t - coverage - %s", $time, completiontracker.showcoverage());
-    // if ($test$plusargs("datadump"))
-    //     $monitor("%0t -\n\tcoverage - %s\n\tbiftb - %p\n\t bidders - %p\n\tstate,ns - %p,%p\n\tkey - %0d",
-    //               $time, completiontracker.showcoverage(), biftb, DUV.bidder, DUV.state, DUV.nextState, DUV.key);
-
     // making everyone win atleast once
     // makeAllBiddersWin();
 
-    do begin
-        assert(inrandoms.randomize());
+    // testing 1  million tokens for all
+    milliontokens();
+    lock(`KEY);
+    randtillcomplete();
 
-        biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
-        biftb.cin        = inrandoms.randfsminputs.fsminputs;
+    completiontracker.currentruns = 0;
+    unlock(`KEY);
 
-        @(negedge clk);
+    @(negedge clk);
+    biftb.cin.C_op = SETMASK; // masking out a bidder
+    biftb.cin.C_data = 3;     // 011
+    @(negedge clk);
+    milliontokens();
+    lock(`KEY);
+    randtillcomplete();
 
-        completiontracker.statecoverage = statecg.get_coverage();
-        completiontracker.biddercoverage = biddercg.get_coverage();
-        completiontracker.outerrorcoverage = errorcg.get_coverage();
-        completiontracker.currentruns++;
-
-        if (completiontracker.currentruns % completiontracker.printaftertests == 0)
-            $display("%0d - coverage - %s", completiontracker.currentruns, completiontracker.showcoverage());
-    end
-    while (completiontracker.completion() < 100);
+    completiontracker.currentruns = 0;
+    unlock(`KEY);
+    randtillcomplete();
 
     if (completiontracker.currentruns >= completiontracker.runs) $display("run limit (%0d) reached, quitting.", completiontracker.runs);
 
@@ -266,4 +264,64 @@ task makeAllBiddersWin();
 
     return;
 endtask : makeAllBiddersWin
+
+task lock(int key);
+    biftb.cin = 0;
+    @(negedge clk)
+    biftb.cin.C_op = LOCK;
+    biftb.cin.C_data = `KEY;
+    @(negedge clk);
+    @(negedge clk);
+    return;
+endtask : lock
+
+task unlock(int key);
+    biftb.cin = 0;
+    @(negedge clk)
+    biftb.cin.C_op = UNLOCK;
+    biftb.cin.C_data = `KEY;
+    @(negedge clk);
+    @(negedge clk);
+    return;
+endtask : unlock
+
+task milliontokens();
+    biftb.cin = 0;
+    @(negedge clk)
+    biftb.cin.C_op = LOADX;
+    biftb.cin.C_data = 1000000;
+    @(negedge clk);
+    biftb.cin.C_op = LOADY;
+    biftb.cin.C_data = 1000000;
+    @(negedge clk);
+    biftb.cin.C_op = LOADZ;
+    biftb.cin.C_data = 1000000;
+    @(negedge clk);
+    biftb.cin.C_op = SETTIMER;
+    biftb.cin.C_op = 1;
+    @(negedge clk);
+    return;
+endtask : milliontokens
+
+task randtillcomplete();
+    do begin
+        assert(inrandoms.randomize());
+
+        biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
+        biftb.cin        = inrandoms.randfsminputs.fsminputs;
+
+        @(negedge clk);
+
+        completiontracker.statecoverage = statecg.get_coverage();
+        completiontracker.biddercoverage = biddercg.get_coverage();
+        completiontracker.outerrorcoverage = errorcg.get_coverage();
+        completiontracker.currentruns++;
+
+        if (completiontracker.currentruns % completiontracker.printaftertests == 0)
+            $display("%0d - coverage - %s", completiontracker.currentruns, completiontracker.showcoverage());
+    end
+    while (completiontracker.completion() < 100);
+endtask : randtillcomplete
+
+
 endmodule : top
