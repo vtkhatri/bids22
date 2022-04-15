@@ -132,8 +132,8 @@ always_comb begin
     for (int i=0; i<NUMBIDDERS; i++) begin
         bif.bidders_out[i].balance = bidder[i].value;
         bif.bidders_out[i] = 0; // reset values for bidders' output, it's a packed struct
-        // set invalid request every time C_start is low and bid is high
-        if (bif.cin.C_start == 0 && bif.bidders_in[i].bid == 1) bif.bidders_out[i].err = INVALIDREQUEST;
+        // set round inactive every time C_start is low and bid is high
+        if (bif.cin.C_start == 0 && bif.bidders_in[i].bid == 1) bif.bidders_out[i].err = ROUNDINACTIVE;
     end
 
     // reset values for fsm

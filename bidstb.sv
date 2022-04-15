@@ -52,7 +52,17 @@ endclass : bidsrandomizer
 covergroup bids22coverstates@(posedge clk);
     option.at_least = 2;
     coverstates: coverpoint DUV.state {
-        illegal_bins impossible_state = {RESET};
+        illegal_bins RESET = {RESET};
+    }
+    coverstatetransitions: coverpoint DUV.state {
+        bins lock = (UNLOCKED => LOCKED);
+        bins unlock = (LOCKED => UNLOCKED);
+        bins badkey = (LOCKED => COOLDOWN);
+        bins newbadkey = (COOLDOWN => LOCKED);
+        bins start = (LOCKED => ROUNDSTARTED);
+        bins over = (ROUNDSTARTED => ROUNDOVER);
+        bins restart = (ROUNDOVER => READYNEXT);
+        bins ready = (READYNEXT => LOCKED);
     }
 endgroup : bids22coverstates
 
