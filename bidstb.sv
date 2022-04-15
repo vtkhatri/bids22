@@ -80,18 +80,83 @@ bids22coverstates statecg = new;
 bids22coverbidders biddercg = new;
 bids22outerrors errorcg = new;
 
-static int statecoverage;
-static int bidercoverage;
-static int errorcoverage;
+//
+// main place to check progress of simulation
+//
+class overlord;
+    protected int coverage;
 
-static int currentruns, runs;
+    int statecoverage;
+    int biddercoverage;
+    int outerrorcoverage;
+    int currentruns, runs, printaftertests;
+
+    protected int denom; // to average all coverages
+
+    function new();
+        currentruns = 0;
+        runs = 10000;
+        printaftertests = 1000;
+        $value$plusargs("RUNS=%d", runs);
+        $value$plusargs("PRINTAFTERTESTS=%d", printaftertests);
+    endfunction
+
+    // check completion status, returns % in integer
+    function int completion();
+        denom = 0;
+        coverage = 0;
+
+        if ($test$plusargs("coverstates")) begin
+            coverage += statecoverage;
+            denom++;
+        end
+        if ($test$plusargs("coverbidders")) begin
+            coverage += biddercoverage;
+            denom++;
+        end
+        if ($test$plusargs("coverouterrors")) begin
+            coverage += outerrorcoverage;
+            denom++;
+        end
+
+        if (denom == 0) begin
+            coverage = statecoverage + biddercoverage + outerrorcoverage;
+            denom = 3;
+        end
+        coverage = coverage / denom;
+
+        if (currentruns >= runs) coverage = 100;
+
+        return coverage;
+    endfunction : completion
+
+    // displaying status of coverages
+    function string showcoverage();
+        string retdisplay;
+
+        string state, bidder, outerror, coverage;
+        state.itoa(statecoverage);
+        bidder.itoa(biddercoverage);
+        outerror.itoa(outerrorcoverage);
+
+        coverage.itoa(this.completion());
+
+        retdisplay = {"overall-", coverage};
+
+        if ($test$plusargs("coverstates")) retdisplay = {retdisplay, " state-", state};
+        if ($test$plusargs("coverbidders")) retdisplay = {retdisplay, " bidders-", bidder};
+        if ($test$plusargs("coverouterrors")) retdisplay = {retdisplay, " errors-", outerror};
+
+        if (retdisplay.len() < 12)
+            retdisplay = {retdisplay, " state-",  state, " bidders-", bidder, " errors-", outerror};
+
+        return retdisplay;
+    endfunction : showcoverage
+endclass
+
+overlord completiontracker = new;
 
 initial begin
-    // tracking maxruns
-    currentruns = 0;
-    runs = 10000;
-    $value$plusargs("RUNS=%d", runs);
-
     // resetting fsm inputs
     biftb.cin = 0;
     biftb.bidders_in[0] = 0;
@@ -102,11 +167,10 @@ initial begin
     repeat(CLOCK_IDLE) @(negedge clk);
 
     // test state coverage
-    $monitor("%0t - statecoverage - %0d, biddercoverage - %0d, errorcoverage - %0d", $time, statecoverage, bidercoverage, errorcoverage);
-    if ($test$plusargs("datadump"))
-        $monitor("%0t -\n\tstatecoverage - %0d, biddercoverage - %0d, errorcoverage - %0d\
-                  \n\tbiftb - %p\n\t bidders - %p\n\tstate,ns - %p,%p\n\tkey - %0d",
-                  $time, statecoverage, bidercoverage, errorcoverage, biftb, DUV.bidder, DUV.state, DUV.nextState, DUV.key);
+    // $monitor("%0t - coverage - %s", $time, completiontracker.showcoverage());
+    // if ($test$plusargs("datadump"))
+    //     $monitor("%0t -\n\tcoverage - %s\n\tbiftb - %p\n\t bidders - %p\n\tstate,ns - %p,%p\n\tkey - %0d",
+    //               $time, completiontracker.showcoverage(), biftb, DUV.bidder, DUV.state, DUV.nextState, DUV.key);
 
     // making everyone win atleast once
     // makeAllBiddersWin();
@@ -119,14 +183,17 @@ initial begin
 
         @(negedge clk);
 
-        statecoverage = statecg.get_coverage();
-        bidercoverage = biddercg.get_coverage();
-        errorcoverage = errorcg.get_coverage();
-        currentruns++;
-    end
-    while ((statecoverage < 100 || errorcoverage < 100 || bidercoverage < 100) && currentruns < runs);
+        completiontracker.statecoverage = statecg.get_coverage();
+        completiontracker.biddercoverage = biddercg.get_coverage();
+        completiontracker.outerrorcoverage = errorcg.get_coverage();
+        completiontracker.currentruns++;
 
-    if (currentruns == runs) $display("run limit (%0d) reached, quitting.", runs);
+        if (completiontracker.currentruns % completiontracker.printaftertests == 0)
+            $display("%0d - coverage - %s", completiontracker.currentruns, completiontracker.showcoverage());
+    end
+    while (completiontracker.completion() < 100);
+
+    if (completiontracker.currentruns >= completiontracker.runs) $display("run limit (%0d) reached, quitting.", completiontracker.runs);
 
     $finish();
 end

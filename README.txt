@@ -40,6 +40,8 @@
   * testing for insufficient funds when the bid amount outweighs the value/balance for particular bidder
   * testing for mask for particular bidder goes zero at the same time bidder makes a bid
   * testing for bids being placed when `C_start` is low
+---
+## assignment 2
 ### input generation
 * class `bidsrandomizer`
   * randomizes inputs to fsm and bidders
@@ -47,6 +49,10 @@
     * `bidsinputsrandomizer_t` struct used to declare `NUMBIDDERS`x`biddersinputs_t` structs as `rand`
   * no constraints for now
 ### coverage
+* simulation will try to continue till it gets to 100% coverage or `RUNS` reaches a value
+  * can specify value maximum runs with `make RUNS=<value>`
+  * defaults to `RUNS=10000`
+  * can reduce / increase prints with `make PRINTAFTERTESTS=<value>`
 * covergroup `bids22covergroup`
   * coverpoints
     * `coverstates` - `illegal_bin` used to exclude `RESET` state from % coverage
@@ -58,6 +64,3 @@
   * coverpoints
     * `coverfsmerrors` - check all fsm errors occuring
     * 3x cover bidders errors - check all errors occuring per bidder
-* simulation will try to continue till it gets to 100% coverage or `RUNS` reaches a value
-  * can specify value maximum runs with `make RUNS=<value>`
-  * defaults to `RUNS=10000`

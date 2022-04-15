@@ -5,11 +5,12 @@ COVERAGE_FILE   := coverage.ucdb
 COVERAGE_REPORT := coverage.report
 
 RUNS := 10000
+PRINTAFTERTESTS := 1000
 
 top_module := top
 vsim_args := \
 	-do "coverage save -onexit $(COVERAGE_FILE) ; run -all" \
-	+RUNS=$(RUNS)
+	+RUNS=$(RUNS) +PRINTAFTERTESTS=$(PRINTAFTERTESTS)
 
 SUBMISSION_FILE := ece593bids22group4.zip
 REMOVABLE_STUFF := \
