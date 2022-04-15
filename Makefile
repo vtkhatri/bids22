@@ -4,14 +4,18 @@ SRC_FILES := bidsinterface.sv bids.sv bidstb.sv
 COVERAGE_FILE   := coverage.ucdb
 COVERAGE_REPORT := coverage.report
 
-RUNS := 10000
-PRINTAFTERTESTS := 1000
+runs := 10000
+tests := 1000
+
+vlog_args := \
+	-coveropt 3 \
+	+cover=sfc \
+	+acc -sv -lint \
 
 top_module := top
 vsim_args := \
-	-do "coverage save -onexit $(COVERAGE_FILE) ; run -all" \
-	+RUNS=$(RUNS) +PRINTAFTERTESTS=$(PRINTAFTERTESTS) \
-	+cover=scf
+	-do "coverage save -onexit -directive -cvg -codeAll $(COVERAGE_FILE) ; run -all" \
+	+RUNS=$(runs) +PRINTAFTERTESTS=$(tests)
 
 # cover => s statement, c condition, f fsm
 
@@ -35,13 +39,15 @@ vlib:
 	vlib work
 
 vlog:
-	vlog -lint $(SRC_FILES)
+	vlog $(vlog_args) $(SRC_FILES)
 
 vsim: vlog
-	vsim -c work.$(top_module) $(vsim_args)
+	vsim -c work.$(top_module) -do "vopt +cover=scf $(top_module) -o $(top_module)_opt ; q"
+	vsim -c -coverage work.$(top_module)_opt $(vsim_args)
 
 vcover:
-	vcover report -verbose $(COVERAGE_FILE) > coverage.report
+	vcover report -verbose -directive -codeAll -code scf -cvg $(COVERAGE_FILE) -output $(COVERAGE_REPORT)
+	vcover stats $(COVERAGE_FILE) >> $(COVERAGE_REPORT)
 
 zip:
 	zip -r ece593bids22group4.zip * -x .git/*

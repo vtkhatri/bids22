@@ -181,7 +181,7 @@ initial begin
     // making everyone win atleast once
     // makeAllBiddersWin();
 
-    // testing 1  million tokens for all
+    // testing 1 million tokens for all
     milliontokens();
     lock(`KEY);
     randtillcomplete();
