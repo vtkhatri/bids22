@@ -57,12 +57,8 @@ covergroup bids22coverstates@(posedge clk);
     coverstatetransitions: coverpoint DUV.state {
         bins lock = (UNLOCKED => LOCKED);
         bins unlock = (LOCKED => UNLOCKED);
-        bins badkey = (LOCKED => COOLDOWN);
-        bins newbadkey = (COOLDOWN => LOCKED);
-        bins start = (LOCKED => ROUNDSTARTED);
-        bins over = (ROUNDSTARTED => ROUNDOVER);
-        bins restart = (ROUNDOVER => READYNEXT);
-        bins ready = (READYNEXT => LOCKED);
+        bins badkey = (LOCKED => COOLDOWN => LOCKED);
+        bins round = (LOCKED => ROUNDSTARTED => ROUNDOVER => READYNEXT => LOCKED);
     }
 endgroup : bids22coverstates
 
@@ -77,8 +73,8 @@ covergroup bids22outerrors@(posedge clk);
     option.at_least = 1;
     coverfsmerrors: coverpoint biftb.cout.err;
     coverxerrors: coverpoint biftb.bidders_out[0].err;
-    coveryerrors: coverpoint biftb.bidders_out[0].err;
-    coverzerrors: coverpoint biftb.bidders_out[0].err;
+    coveryerrors: coverpoint biftb.bidders_out[1].err;
+    coverzerrors: coverpoint biftb.bidders_out[2].err;
 endgroup : bids22outerrors
 
 //
@@ -201,8 +197,7 @@ task makeAllBiddersWin();
     biftb.cin.C_op = LOADZ;
     biftb.cin.C_data = 47;
     @(negedge clk);
-    biftb.cin.C_op = LOCK;
-    biftb.cin.C_data = 12;
+    lock(`KEY);
     @(negedge clk);
     @(negedge clk);
     biftb.cin.C_start = 1;
@@ -211,7 +206,7 @@ task makeAllBiddersWin();
     biftb.bidders_in[0].bidAmt = 2;
     biftb.bidders_in[1].bid = 1;
     biftb.bidders_in[1].bidAmt = 1;
-    biftb.bidders_in[2].bid = 1;
+    biftb.bidders_in[2].bid = 0;
     biftb.bidders_in[2].bidAmt = 1;
     @(negedge clk);
     biftb.cin.C_start = 0;

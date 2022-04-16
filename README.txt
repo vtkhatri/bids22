@@ -15,12 +15,16 @@
 * randomize till 100% coverage or number of runs exhausted
 ### coverage
 * simulation will try to continue till it gets to 100% coverage or `RUNS` reaches a value
-  * can specify value maximum runs with `make RUNS=<value>` (default 10000)
-  * can reduce / increase prints with `make PRINTAFTERTESTS=<value>` (default 1000)
+  * can specify value maximum runs with `make runs=<value>` (default 10000)
+  * can reduce / increase prints with `make tests=<value>` (default 1000)
 * covergroup `bids22covergroup`
   * coverpoints
     * `coverstates` - `illegal_bin` used to exclude `RESET` state from % coverage
     * `coverstatetransitions` - as name states
+      * `lock` - state `UNLOCKED => LOCKED`
+      * `unlock` - state `LOCKED => UNLOCKED`
+      * `badkey` - state `LOCKED => COOLDOWN => LOCKED`
+      * `round` - state `LOCKED => ROUNDSTARTED => ROUNDOVER => READYNEXT => LOCKED`
 * covergroup `bids22coverbidders`
   * coverpoints
     * 3x cover bidders winning - covering all bidders winning atleast once
@@ -36,6 +40,15 @@
     * FSM state coverage
     * FSM state transition coverage
     * statement coverage
+  * issues found on reading the coverage report, found discrepancies
+    * all bidders were winners exactly same number of times
+      * further directed testing with just 1 possible winner done
+      * the fsm was outputting correctly when verifying with display statements on `posedge clk`
+      * the coverage was taking one winner as win for all coverpoints, this gave false 100% win coverage
+    * `INSUFFICIENT_FUNDS` did not show up in coverage
+      * with above directed testing, one bidder was also given `X` tokens and `X` bidAmt
+      * due to `bidCost` this should fail with error `INSUFFICIENT_FUNDS`
+      * this can be seen with debug display statement, but coverage report does not list this happening
 ---
 ## assignment 1
 ### makefile

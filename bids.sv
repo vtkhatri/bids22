@@ -108,7 +108,7 @@ always_comb begin
     end
     LOCKED: begin
         if (bif.cin.C_start) nextState = ROUNDSTARTED;
-        else if (bif.cin.C_op == UNLOCK && bif.cin.C_data != key) nextState = COOLDOWN;
+        else if (bif.cin.C_op == UNLOCK) nextState = (bif.cin.C_data == key) ? UNLOCKED : COOLDOWN;
         else nextState = LOCKED;
     end
     ROUNDSTARTED:begin
