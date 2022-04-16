@@ -14,7 +14,7 @@
 * lock device with key (`lock(KEY)`)
 * randomize till 100% coverage or number of runs exhausted
 ### coverage
-* simulation will try to continue till it gets to 100% coverage or tests reache a value
+* simulation will try to continue till it gets to 100% coverage or tests reach a value
   * can specify value maximum runs with `make runs=<value>` (default 10000)
   * can reduce / increase prints with `make tests=<value>` (default 1000)
 * covergroup `bids22covergroup`
