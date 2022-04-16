@@ -9,7 +9,7 @@ tests := 1000
 
 vlog_args := \
 	-coveropt 3 \
-	+cover=sfc \
+	+cover=csfe \
 	+acc -sv -lint \
 
 top_module := top
@@ -42,11 +42,11 @@ vlog:
 	vlog $(vlog_args) $(SRC_FILES)
 
 vsim: vlog
-	vsim -c work.$(top_module) -do "vopt +cover=scf $(top_module) -o $(top_module)_opt ; q"
+	vsim -c work.$(top_module) -do "vopt +cover=csfe $(top_module) -o $(top_module)_opt ; q"
 	vsim -c -coverage work.$(top_module)_opt $(vsim_args)
 
 vcover:
-	vcover report -verbose -directive -codeAll -code scf -cvg $(COVERAGE_FILE) -output $(COVERAGE_REPORT)
+	vcover report -verbose -directive -codeAll -code csfe -cvg $(COVERAGE_FILE) -output $(COVERAGE_REPORT)
 	vcover stats $(COVERAGE_FILE) >> $(COVERAGE_REPORT)
 
 zip:
