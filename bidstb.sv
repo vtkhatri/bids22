@@ -1,3 +1,11 @@
+/***********************************************
+ * bidstb.sv - testbench for bids 22
+ * authors : Viraj Khatri, Deeksha Kamath
+ *
+ * Description:
+ *
+ ***********************************************/
+
 import bids22defs::*;
 module top;
 

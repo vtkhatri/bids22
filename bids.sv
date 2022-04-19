@@ -1,3 +1,11 @@
+/***********************************************
+ * bids.sv - fsm code for bids 22
+ * authors : Viraj Khatri, Deeksha Kamath
+ *
+ * Description:
+ *
+ ***********************************************/
+
 import bids22defs::*;
 
 module bids22(bids22interface bif, input clk, reset_n);

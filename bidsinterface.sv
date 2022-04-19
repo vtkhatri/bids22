@@ -1,3 +1,11 @@
+/************************************************************
+ * bidsinterface.sv - package and interface code for bids22
+ * authors : Viraj Khatri, Deeksha Kamath
+ *
+ * Description:
+ *
+ ************************************************************/
+
 package bids22defs;
 
 parameter DATAWIDTH = 32;
