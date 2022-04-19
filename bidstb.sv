@@ -164,6 +164,9 @@ overlord completiontracker = new;
 
 `define KEY 17
 
+//
+// stimulus
+//
 initial begin
     // resetting fsm inputs
     biftb.cin = 0;
@@ -187,6 +190,9 @@ initial begin
     $finish();
 end
 
+//
+// tasks to clean up the stimulus initial block
+//
 task makeAllBiddersWin();
     biftb.cin.C_op = LOADX;
     biftb.cin.C_data = 45;
