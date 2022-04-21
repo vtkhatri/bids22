@@ -25,7 +25,13 @@ localparam CLOCK_WIDTH  = CLOCK_PERIOD/2;
 parameter  CLOCK_IDLE   = 2;
 initial begin
     clk = 1;
-    forever #CLOCK_WIDTH clk = ~clk;
+    forever begin
+        #CLOCK_WIDTH;
+        clk = ~clk;
+        if ($test$plusargs("peredge"))
+            $display("%0t --------------------------------------------\n\tbif - %p\n\tbidders - %p\n\ts/ns - %p/%p",
+                      $time, biftb, DUV.bidder, DUV.state, DUV.nextState);
+    end
 end
 
 //
@@ -186,12 +192,17 @@ initial begin
     repeat(CLOCK_IDLE) @(negedge clk);
 
     // making everyone win atleast once
-    // biftb.makeAllBiddersWin();
+    if ($test$plusargs("bidderswinonce")) biftb.makeAllBiddersWin();
 
     // testing 1 million tokens for all
-    biftb.milliontokens();
-    biftb.lock(`KEY);
-    randtillcomplete();
+    if ($test$plusargs("milliontokens")) begin
+        biftb.milliontokens();
+        biftb.lock(`KEY);
+    end
+
+    if ($test$plusargs("dontrandtillcomplete")) begin
+    end
+    else randtillcomplete();
 
     if (completiontracker.currentruns >= completiontracker.runs) $display("run limit (%0d) reached, quitting.", completiontracker.runs);
 
