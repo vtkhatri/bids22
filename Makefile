@@ -50,4 +50,4 @@ vcover:
 	vcover stats $(COVERAGE_FILE) >> $(COVERAGE_REPORT)
 
 zip:
-	zip -r ece593bids22group4.zip * -x .git/*
+	zip -r ece593bids22group4.zip * -x .git/* -x work/*
