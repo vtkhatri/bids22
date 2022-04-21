@@ -18,89 +18,6 @@ bids22interface biftb (.clk(clk), .reset_n(reset_n));
 bids22          DUV   (.bif(biftb.bidmaster), .clk(clk), .reset_n(reset_n));
 
 //
-// clock generator
-//
-parameter  CLOCK_PERIOD = 10;
-localparam CLOCK_WIDTH  = CLOCK_PERIOD/2;
-parameter  CLOCK_IDLE   = 2;
-initial begin
-    clk = 1;
-    forever begin
-        #CLOCK_WIDTH;
-        clk = ~clk;
-        if ($test$plusargs("peredge"))
-            $display("%0t --------------------------------------------\n\tbif - %p\n\tbidders - %p\n\ts/ns - %p/%p",
-                      $time, biftb, DUV.bidder, DUV.state, DUV.nextState);
-    end
-end
-
-//
-// reset and other stimulus
-//
-initial begin : resetblock
-    reset_n = 1;
-    reset_n = 0;
-    repeat (CLOCK_IDLE) @(negedge clk); // under reset for 2 clocks
-    reset_n = 1;
-end : resetblock
-
-//
-// randomization of inputs
-//
-typedef struct {
-    rand fsminputs_t fsminputs;
-} fsminputsrandomizer_t;
-
-typedef struct {
-    rand biddersinputs_t [NUMBIDDERS-1:0] biddersinputs;
-} bidsinputsrandomizer_t;
-
-class bidsrandomizer;
-    rand fsminputsrandomizer_t  randfsminputs;
-    rand bidsinputsrandomizer_t randbidsinputs;
-endclass : bidsrandomizer
-
-//
-// covergroups
-//
-covergroup bids22coverstates@(posedge clk);
-    option.at_least = 1;
-    coverstates: coverpoint DUV.state {
-        illegal_bins RESET = {RESET};
-    }
-    coverstatetransitions: coverpoint DUV.state {
-        bins lock = (UNLOCKED => LOCKED);
-        bins unlock = (LOCKED => UNLOCKED);
-        bins badkey = (LOCKED => COOLDOWN => LOCKED);
-        bins round = (LOCKED => ROUNDSTARTED => ROUNDOVER => READYNEXT => LOCKED);
-    }
-endgroup : bids22coverstates
-
-covergroup bids22coverbidders@(posedge clk);
-    option.at_least = 1;
-    coverxwinner: coverpoint biftb.bidders_out[0].win;
-    coverywinner: coverpoint biftb.bidders_out[1].win;
-    coverzwinner: coverpoint biftb.bidders_out[2].win;
-endgroup : bids22coverbidders
-
-covergroup bids22outerrors@(posedge clk);
-    option.at_least = 1;
-    coverfsmerrors: coverpoint biftb.cout.err;
-    coverxerrors: coverpoint biftb.bidders_out[0].err;
-    coveryerrors: coverpoint biftb.bidders_out[1].err;
-    coverzerrors: coverpoint biftb.bidders_out[2].err;
-endgroup : bids22outerrors
-
-//
-// random bidder and fsm inputs
-//
-bidsrandomizer inrandoms = new;
-
-bids22coverstates statecg = new;
-bids22coverbidders biddercg = new;
-bids22outerrors errorcg = new;
-
-//
 // main place to check progress of simulation
 //
 class overlord;
@@ -174,7 +91,97 @@ class overlord;
     endfunction : showcoverage
 endclass
 
+// making a overlord to tack completion
 overlord completiontracker = new;
+
+//
+// clock generator
+//
+parameter  CLOCK_PERIOD = 10;
+localparam CLOCK_WIDTH  = CLOCK_PERIOD/2;
+parameter  CLOCK_IDLE   = 2;
+initial begin
+    clk = 1;
+    forever begin
+        #CLOCK_WIDTH;
+        clk = ~clk;
+
+        completiontracker.statecoverage = statecg.get_coverage();
+        completiontracker.biddercoverage = biddercg.get_coverage();
+        completiontracker.outerrorcoverage = errorcg.get_coverage();
+        completiontracker.currentruns++;
+
+        if ($test$plusargs("peredge"))
+            $display("%0t --------------------------------------------\n\tbif - %p\n\tbidders - %p\n\ts/ns - %p/%p\n\t",
+                      $time, biftb, DUV.bidder, DUV.state, DUV.nextState, completiontracker.showcoverage());
+    end
+end
+
+//
+// reset and other stimulus
+//
+initial begin : resetblock
+    reset_n = 1;
+    reset_n = 0;
+    repeat (CLOCK_IDLE) @(negedge clk); // under reset for 2 clocks
+    reset_n = 1;
+end : resetblock
+
+//
+// randomization of inputs
+//
+typedef struct {
+    rand fsminputs_t fsminputs;
+} fsminputsrandomizer_t;
+
+typedef struct {
+    rand biddersinputs_t [NUMBIDDERS-1:0] biddersinputs;
+} bidsinputsrandomizer_t;
+
+class bidsrandomizer;
+    rand fsminputsrandomizer_t  randfsminputs;
+    rand bidsinputsrandomizer_t randbidsinputs;
+endclass : bidsrandomizer
+
+//
+// covergroups
+//
+covergroup bids22coverstates@(posedge clk);
+    option.at_least = 1;
+    coverstates: coverpoint DUV.state {
+        illegal_bins RESET = {RESET};
+    }
+    coverstatetransitions: coverpoint DUV.state {
+        bins lock = (UNLOCKED => LOCKED);
+        bins unlock = (LOCKED => UNLOCKED);
+        bins badkey = (LOCKED => COOLDOWN => LOCKED);
+        bins round = (LOCKED => ROUNDSTARTED => ROUNDOVER => READYNEXT => LOCKED);
+    }
+endgroup : bids22coverstates
+
+covergroup bids22coverbidders@(posedge clk);
+    option.at_least = 1;
+    coverxwinner: coverpoint biftb.bidders_out[0].win;
+    coverywinner: coverpoint biftb.bidders_out[1].win;
+    coverzwinner: coverpoint biftb.bidders_out[2].win;
+endgroup : bids22coverbidders
+
+covergroup bids22outerrors@(posedge clk);
+    option.at_least = 1;
+    coverfsmerrors: coverpoint biftb.cout.err;
+    coverxerrors: coverpoint biftb.bidders_out[0].err;
+    coveryerrors: coverpoint biftb.bidders_out[1].err;
+    coverzerrors: coverpoint biftb.bidders_out[2].err;
+endgroup : bids22outerrors
+
+//
+// random bidder and fsm inputs
+//
+bidsrandomizer inrandoms = new;
+
+bids22coverstates statecg = new;
+bids22coverbidders biddercg = new;
+bids22outerrors errorcg = new;
 
 `define KEY 17
 
@@ -217,11 +224,6 @@ task randtillcomplete();
         biftb.cin        = inrandoms.randfsminputs.fsminputs;
 
         @(negedge clk);
-
-        completiontracker.statecoverage = statecg.get_coverage();
-        completiontracker.biddercoverage = biddercg.get_coverage();
-        completiontracker.outerrorcoverage = errorcg.get_coverage();
-        completiontracker.currentruns++;
 
         if (completiontracker.currentruns % completiontracker.printaftertests == 0)
             $display("%0d - coverage - %s", completiontracker.currentruns, completiontracker.showcoverage());
