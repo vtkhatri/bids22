@@ -147,34 +147,38 @@ interface bids22interface (input logic clk, reset_n);
         cin.C_start = 0;
         @(negedge clk);
         @(negedge clk);
-        @(negedge clk);
-        cin.C_start = 1;
-        @(negedge clk);
-        bidders_in[0].bid = 1;
-        bidders_in[0].bidAmt = 1;
-        bidders_in[1].bid = 1;
-        bidders_in[1].bidAmt = 2;
-        bidders_in[2].bid = 1;
-        bidders_in[2].bidAmt = 1;
-        @(negedge clk);
-        cin.C_start = 0;
-        @(negedge clk);
-        @(negedge clk);
-        @(negedge clk);
-        cin.C_start = 1;
-        @(negedge clk);
-        bidders_in[0].bid = 1;
-        bidders_in[0].bidAmt = 1;
-        bidders_in[1].bid = 1;
-        bidders_in[1].bidAmt = 1;
-        bidders_in[2].bid = 1;
-        bidders_in[2].bidAmt = 2;
-        @(negedge clk);
-        cin.C_start = 0;
-        @(negedge clk);
-        @(negedge clk);
-        unlock(12);
-        @(negedge clk);
+        if ($test$plusargs("onlyonewinner")) begin
+        end
+        else begin
+            @(negedge clk);
+            cin.C_start = 1;
+            @(negedge clk);
+            bidders_in[0].bid = 1;
+            bidders_in[0].bidAmt = 1;
+            bidders_in[1].bid = 1;
+            bidders_in[1].bidAmt = 2;
+            bidders_in[2].bid = 1;
+            bidders_in[2].bidAmt = 1;
+            @(negedge clk);
+            cin.C_start = 0;
+            @(negedge clk);
+            @(negedge clk);
+            @(negedge clk);
+            cin.C_start = 1;
+            @(negedge clk);
+            bidders_in[0].bid = 1;
+            bidders_in[0].bidAmt = 1;
+            bidders_in[1].bid = 1;
+            bidders_in[1].bidAmt = 1;
+            bidders_in[2].bid = 1;
+            bidders_in[2].bidAmt = 2;
+            @(negedge clk);
+            cin.C_start = 0;
+            @(negedge clk);
+            @(negedge clk);
+            unlock(12);
+            @(negedge clk);
+        end
 
         return;
     endtask : makeAllBiddersWin
