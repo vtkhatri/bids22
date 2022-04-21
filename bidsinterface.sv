@@ -117,5 +117,105 @@ interface bids22interface (input logic clk, reset_n);
         input cin,
         output cout
     );
+
+
+    //
+    // tasks to clean up the stimulus initial block
+    //
+    task makeAllBiddersWin();
+        cin.C_op = LOADX;
+        cin.C_data = 45;
+        @(negedge clk);
+        cin.C_op = LOADY;
+        cin.C_data = 46;
+        @(negedge clk);
+        cin.C_op = LOADZ;
+        cin.C_data = 47;
+        @(negedge clk);
+        lock(12);
+        @(negedge clk);
+        @(negedge clk);
+        cin.C_start = 1;
+        @(negedge clk);
+        bidders_in[0].bid = 1;
+        bidders_in[0].bidAmt = 2;
+        bidders_in[1].bid = 1;
+        bidders_in[1].bidAmt = 1;
+        bidders_in[2].bid = 0;
+        bidders_in[2].bidAmt = 1;
+        @(negedge clk);
+        cin.C_start = 0;
+        @(negedge clk);
+        @(negedge clk);
+        @(negedge clk);
+        cin.C_start = 1;
+        @(negedge clk);
+        bidders_in[0].bid = 1;
+        bidders_in[0].bidAmt = 1;
+        bidders_in[1].bid = 1;
+        bidders_in[1].bidAmt = 2;
+        bidders_in[2].bid = 1;
+        bidders_in[2].bidAmt = 1;
+        @(negedge clk);
+        cin.C_start = 0;
+        @(negedge clk);
+        @(negedge clk);
+        @(negedge clk);
+        cin.C_start = 1;
+        @(negedge clk);
+        bidders_in[0].bid = 1;
+        bidders_in[0].bidAmt = 1;
+        bidders_in[1].bid = 1;
+        bidders_in[1].bidAmt = 1;
+        bidders_in[2].bid = 1;
+        bidders_in[2].bidAmt = 2;
+        @(negedge clk);
+        cin.C_start = 0;
+        @(negedge clk);
+        @(negedge clk);
+        unlock(12);
+        @(negedge clk);
+
+        return;
+    endtask : makeAllBiddersWin
+
+    task lock(int key);
+        cin = 0;
+        @(negedge clk)
+        cin.C_op = LOCK;
+        cin.C_data = key;
+        @(negedge clk);
+        @(negedge clk);
+        return;
+    endtask : lock
+
+    task unlock(int key);
+        cin = 0;
+        @(negedge clk)
+        cin.C_op = UNLOCK;
+        cin.C_data = key;
+        @(negedge clk);
+        @(negedge clk);
+        return;
+    endtask : unlock
+
+    task milliontokens();
+        cin = 0;
+        @(negedge clk)
+        cin.C_op = LOADX;
+        cin.C_data = 1000000;
+        @(negedge clk);
+        cin.C_op = LOADY;
+        cin.C_data = 1000000;
+        @(negedge clk);
+        cin.C_op = LOADZ;
+        cin.C_data = 1000000;
+        @(negedge clk);
+        cin.C_op = SETTIMER;
+        cin.C_op = 1;
+        @(negedge clk);
+        return;
+    endtask : milliontokens
+
     
 endinterface : bids22interface

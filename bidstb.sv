@@ -186,116 +186,17 @@ initial begin
     repeat(CLOCK_IDLE) @(negedge clk);
 
     // making everyone win atleast once
-    // makeAllBiddersWin();
+    // biftb.makeAllBiddersWin();
 
     // testing 1 million tokens for all
-    milliontokens();
-    lock(`KEY);
+    biftb.milliontokens();
+    biftb.lock(`KEY);
     randtillcomplete();
 
     if (completiontracker.currentruns >= completiontracker.runs) $display("run limit (%0d) reached, quitting.", completiontracker.runs);
 
     $finish();
 end
-
-//
-// tasks to clean up the stimulus initial block
-//
-task makeAllBiddersWin();
-    biftb.cin.C_op = LOADX;
-    biftb.cin.C_data = 45;
-    @(negedge clk);
-    biftb.cin.C_op = LOADY;
-    biftb.cin.C_data = 46;
-    @(negedge clk);
-    biftb.cin.C_op = LOADZ;
-    biftb.cin.C_data = 47;
-    @(negedge clk);
-    lock(`KEY);
-    @(negedge clk);
-    @(negedge clk);
-    biftb.cin.C_start = 1;
-    @(negedge clk);
-    biftb.bidders_in[0].bid = 1;
-    biftb.bidders_in[0].bidAmt = 2;
-    biftb.bidders_in[1].bid = 1;
-    biftb.bidders_in[1].bidAmt = 1;
-    biftb.bidders_in[2].bid = 0;
-    biftb.bidders_in[2].bidAmt = 1;
-    @(negedge clk);
-    biftb.cin.C_start = 0;
-    @(negedge clk);
-    @(negedge clk);
-    @(negedge clk);
-    biftb.cin.C_start = 1;
-    @(negedge clk);
-    biftb.bidders_in[0].bid = 1;
-    biftb.bidders_in[0].bidAmt = 1;
-    biftb.bidders_in[1].bid = 1;
-    biftb.bidders_in[1].bidAmt = 2;
-    biftb.bidders_in[2].bid = 1;
-    biftb.bidders_in[2].bidAmt = 1;
-    @(negedge clk);
-    biftb.cin.C_start = 0;
-    @(negedge clk);
-    @(negedge clk);
-    @(negedge clk);
-    biftb.cin.C_start = 1;
-    @(negedge clk);
-    biftb.bidders_in[0].bid = 1;
-    biftb.bidders_in[0].bidAmt = 1;
-    biftb.bidders_in[1].bid = 1;
-    biftb.bidders_in[1].bidAmt = 1;
-    biftb.bidders_in[2].bid = 1;
-    biftb.bidders_in[2].bidAmt = 2;
-    @(negedge clk);
-    biftb.cin.C_start = 0;
-    @(negedge clk);
-    @(negedge clk);
-    biftb.cin.C_op = UNLOCK;
-    biftb.cin.C_data = 12;
-    @(negedge clk);
-
-    return;
-endtask : makeAllBiddersWin
-
-task lock(int key);
-    biftb.cin = 0;
-    @(negedge clk)
-    biftb.cin.C_op = LOCK;
-    biftb.cin.C_data = `KEY;
-    @(negedge clk);
-    @(negedge clk);
-    return;
-endtask : lock
-
-task unlock(int key);
-    biftb.cin = 0;
-    @(negedge clk)
-    biftb.cin.C_op = UNLOCK;
-    biftb.cin.C_data = `KEY;
-    @(negedge clk);
-    @(negedge clk);
-    return;
-endtask : unlock
-
-task milliontokens();
-    biftb.cin = 0;
-    @(negedge clk)
-    biftb.cin.C_op = LOADX;
-    biftb.cin.C_data = 1000000;
-    @(negedge clk);
-    biftb.cin.C_op = LOADY;
-    biftb.cin.C_data = 1000000;
-    @(negedge clk);
-    biftb.cin.C_op = LOADZ;
-    biftb.cin.C_data = 1000000;
-    @(negedge clk);
-    biftb.cin.C_op = SETTIMER;
-    biftb.cin.C_op = 1;
-    @(negedge clk);
-    return;
-endtask : milliontokens
 
 task randtillcomplete();
     do begin
