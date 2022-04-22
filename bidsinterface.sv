@@ -2,7 +2,8 @@
  * bidsinterface.sv - package and interface code for bids22
  * authors : Viraj Khatri, Deeksha Kamath
  *
- * Description:
+ * Description: Designed a package and interface that consists of typedef structures and enum definitions for input, output signals  and fsm signals. Also defined tasks that routinely assign million tokens to all bidders when invoked and for directed testing to make every bidder win with respective inputs. 
+ *
  *
  ************************************************************/
 
