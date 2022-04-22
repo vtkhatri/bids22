@@ -2,7 +2,7 @@
  * bids.sv - fsm code for bids 22
  * authors : Viraj Khatri, Deeksha Kamath
  *
- * Description:
+ * Description: Design for various FSM states that define the logic for input and output signals of the Bids22 Architectural Reference Model and computed the winning bidder. Instantiated the interface and imported the package consisting of typedef enum definitions. 
  *
  ***********************************************/
 
