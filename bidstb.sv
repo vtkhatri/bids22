@@ -17,6 +17,10 @@ logic clk, reset_n;
 bids22interface biftb (.clk(clk), .reset_n(reset_n));
 bids22          DUV   (.bif(biftb.bidmaster), .clk(clk), .reset_n(reset_n));
 
+int xwin = 0;
+int ywin = 0;
+int zwin = 0;
+
 //
 // main place to check progress of simulation
 //
@@ -112,8 +116,8 @@ initial begin
         completiontracker.currentruns++;
 
         if ($test$plusargs("peredge"))
-            $display("%0t --------------------------------------------\n\tbif - %p\n\tbidders - %p\n\ts/ns - %p/%p\n\t",
-                      $time, biftb, DUV.bidder, DUV.state, DUV.nextState, completiontracker.showcoverage());
+            $display("%0t --------------------------------------------\n\tbif - %p\n\tbidders - %p\n\ts/ns - %p/%p\n\t%s\n\t%0d %0d %0d",
+                      $time, biftb, DUV.bidder, DUV.state, DUV.nextState, completiontracker.showcoverage(), xwin, ywin, zwin);
     end
 end
 
@@ -184,6 +188,13 @@ bids22coverbidders biddercg = new;
 bids22outerrors errorcg = new;
 
 `define KEY 17
+
+assert property (@(posedge clk) ~biftb.bidders_out[0].win)
+else $display("[ASSERTION] bidder[0] has won");
+assert property (@(posedge clk) ~biftb.bidders_out[1].win)
+else $display("[ASSERTION] bidder[1] has won");
+assert property (@(posedge clk) ~biftb.bidders_out[2].win)
+else $display("[ASSERTION] bidder[2] has won");
 
 //
 // stimulus
