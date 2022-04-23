@@ -22,7 +22,7 @@ else
 	vsim_args += +probabilisticallyrandom
 endif
 
-ifeq ($(debug), perclk)
+ifeq ($(debug), peredge)
 	vsim_args += +peredge
 endif
 
