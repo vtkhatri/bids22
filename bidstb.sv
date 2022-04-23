@@ -150,7 +150,7 @@ endclass : bidsrandomizer
 // covergroups
 //
 covergroup bids22coverstates@(posedge clk);
-    option.at_least = 1;
+    option.at_least = 100;
     coverstates: coverpoint DUV.state {
         illegal_bins RESET = {RESET};
     }
@@ -163,14 +163,14 @@ covergroup bids22coverstates@(posedge clk);
 endgroup : bids22coverstates
 
 covergroup bids22coverbidders@(posedge clk);
-    option.at_least = 1;
+    option.at_least = 100;
     coverxwinner: coverpoint biftb.bidders_out[0].win;
     coverywinner: coverpoint biftb.bidders_out[1].win;
     coverzwinner: coverpoint biftb.bidders_out[2].win;
 endgroup : bids22coverbidders
 
 covergroup bids22outerrors@(posedge clk);
-    option.at_least = 1;
+    option.at_least = 10;
     coverfsmerrors: coverpoint biftb.cout.err;
     coverxerrors: coverpoint biftb.bidders_out[0].err;
     coveryerrors: coverpoint biftb.bidders_out[1].err;
