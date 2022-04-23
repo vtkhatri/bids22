@@ -1,6 +1,29 @@
 # implementation of bids22 - group 4
 ## deeksha kamath, viraj khatri
 ---
+## assignment 3
+### indirect random input generation
+* using functions `getbids()` and `getinputs()`
+  * called by `+probabilisticallyrandom` for `vsim`, use `make random=true` to disable
+  * `getinputs()` for inputs to fsm control
+    * will always lock with macro `KEY`, 25% chance to use the same key to unlock
+    * mask will always leave at least 1 bidder active
+    * cooldown timer can never be greater then 2^8
+    * 25% change to toggle `C_start`, make longer rounds and longer break between rounds
+  * `gitbids()`
+### bfm tasks to setup device
+* `lock()` and `unlock()` tasks that use a pre-defined macro key
+* `milliontokens()` to give each bidder a million tokens
+* `makeAllBiddersWin()`
+  * gives tokens to all bidders
+  * locks device
+  * starts 3 rounds that lead to all bidders winning atleast once
+  * can make only 1 bidder win with `+onlyonewinner` plusarg
+### plusargs to use bfm tasks
+* `+bidderswinonce` - to call `makeAllBiddersWin()`
+* `+milliontokens` - to call `milliontokens()` and then lock the device
+* `+dontrandtillcomplete` - to skip randomization altogether for directed testing
+---
 ## assignment 2
 ### input generation
 * class `bidsrandomizer`
