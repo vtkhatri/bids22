@@ -2,7 +2,10 @@
  * bidstb.sv - testbench for bids 22
  * authors : Viraj Khatri, Deeksha Kamath
  *
- * Description:
+ * Description: Testbench code for generating 
+ *              randomized inputs, defining 
+ *              covergroups, and setting initial
+ *              values to signals. 
  *
  ***********************************************/
 
