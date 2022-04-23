@@ -20,6 +20,8 @@ logic clk, reset_n;
 bids22interface biftb (.clk(clk), .reset_n(reset_n));
 bids22          DUV   (.bif(biftb.bidmaster), .clk(clk), .reset_n(reset_n));
 
+`define KEY 17
+
 //
 // main place to check progress of simulation
 //
@@ -112,7 +114,6 @@ initial begin
         completiontracker.statecoverage = statecg.get_coverage();
         completiontracker.biddercoverage = biddercg.get_coverage();
         completiontracker.outerrorcoverage = errorcg.get_coverage();
-        completiontracker.currentruns++;
 
         if ($test$plusargs("peredge"))
             $display("%0t --------------------------------------------\n\tbif - %p\n\tbidders - %p\n\ts/ns - %p/%p\n\t",
@@ -144,6 +145,73 @@ typedef struct {
 class bidsrandomizer;
     rand fsminputsrandomizer_t  randfsminputs;
     rand bidsinputsrandomizer_t randbidsinputs;
+
+    function biddersinputs_t getbids();
+        biddersinputs_t outbidders;
+
+        for (int i=0; i<NUMBIDDERS; i++) begin
+        end
+    endfunction
+
+    function fsminputs_t getinputs();
+        fsminputs_t outfsms;
+        bit [3:0] randopcode;
+        bit [NUMBIDDERS-1:0] biddermask;
+        bit [7:0] timerrandmax; // timer shouldn't exceed 2^8
+        bit [1:0] correctkey;   // 1/4 chance to take correct key
+        bit [1:0] togglecstart; // 1/4 chance to toggle c start
+
+        outfsms = $random; // to make sure if indirect randomization is not done
+                           // atleast a default fully random is assigned
+
+        case (outfsms.C_op)
+            NO_OP: begin
+                // ¯\_(ツ)_/¯
+            end
+            UNLOCK: begin
+                outfsms.C_op = UNLOCK;
+                correctkey = $random;
+                if (correctkey == '1) outfsms.C_data = `KEY;
+            end
+            LOCK: begin
+                outfsms.C_op = LOCK;
+                outfsms.C_data = `KEY;
+            end
+            LOADX: begin
+                // ¯\_(ツ)_/¯
+            end
+            LOADY: begin
+                // ¯\_(ツ)_/¯
+            end
+            LOADZ: begin
+                // ¯\_(ツ)_/¯
+            end
+            SETMASK: begin
+                // make sure that atleast 1 bidder is always actived
+                biddermask = $random;
+
+                outfsms.C_data = (biddermask == 0) ? '1 : biddermask;
+            end
+            SETTIMER: begin
+                timerrandmax = $random; // limiting to 2^8
+                outfsms.C_data = timerrandmax;
+            end
+            SETBIDCHARGE: begin
+                // ¯\_(ツ)_/¯
+            end
+            default: begin
+                // ¯\_(ツ)_/¯
+            end
+        endcase
+
+        // 75% chance to stay the same, 25% chance to toggle
+        // done for longer rounds and breaks
+        togglecstart = $random;
+        outfsms.C_start = (togglecstart == 2'b00) ? ~biftb.cin.C_start : biftb.cin.C_start;
+
+        return outfsms;
+
+    endfunction
 endclass : bidsrandomizer
 
 //
@@ -164,9 +232,15 @@ endgroup : bids22coverstates
 
 covergroup bids22coverbidders@(posedge clk);
     option.at_least = 100;
-    coverxwinner: coverpoint biftb.bidders_out[0].win;
-    coverywinner: coverpoint biftb.bidders_out[1].win;
-    coverzwinner: coverpoint biftb.bidders_out[2].win;
+    coverxwinner: coverpoint biftb.bidders_out[0].win {
+        bins xwon = {1};
+    }
+    coverywinner: coverpoint biftb.bidders_out[1].win {
+        bins ywon = {1};
+    }
+    coverzwinner: coverpoint biftb.bidders_out[2].win {
+        bins zwon = {1};
+    }
 endgroup : bids22coverbidders
 
 covergroup bids22outerrors@(posedge clk);
@@ -185,8 +259,6 @@ bidsrandomizer inrandoms = new;
 bids22coverstates statecg = new;
 bids22coverbidders biddercg = new;
 bids22outerrors errorcg = new;
-
-`define KEY 17
 
 //
 // stimulus
@@ -223,11 +295,18 @@ task randtillcomplete();
     do begin
         assert(inrandoms.randomize());
 
-        biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
-        biftb.cin        = inrandoms.randfsminputs.fsminputs;
+        if ($test$plusargs("probabilisticallyrandom")) begin
+            biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
+            biftb.cin        = inrandoms.getinputs();
+        end
+        else begin
+            biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
+            biftb.cin        = inrandoms.randfsminputs.fsminputs;
+        end
 
         @(negedge clk);
 
+        completiontracker.currentruns++;
         if (completiontracker.currentruns % completiontracker.printaftertests == 0)
             $display("%0d - coverage - %s", completiontracker.currentruns, completiontracker.showcoverage());
     end
