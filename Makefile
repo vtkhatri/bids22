@@ -17,6 +17,15 @@ vsim_args := \
 	-do "coverage save -onexit -directive -cvg -codeAll $(COVERAGE_FILE) ; run -all" \
 	+RUNS=$(runs) +PRINTAFTERTESTS=$(tests)
 
+ifeq ($(random), true)
+else
+	vsim_args += +probabilisticallyrandom
+endif
+
+ifeq ($(debug), perclk)
+	vsim_args += +peredge
+endif
+
 # cover => s statement, c condition, f fsm
 
 SUBMISSION_FILE := ece593bids22group4.zip
