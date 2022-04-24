@@ -2,6 +2,13 @@
 ## deeksha kamath, viraj khatri
 ---
 ## assignment 3
+### dynamic randomization constraints
+* `correctkey`
+  * makes sure key is `KEY when locking
+  * 33% change to guess correct key while unlocking
+* `limittimer` - max limit of 255 on timer
+* `longerrounds` - `C_start` twice as likely to stay same than toggle
+* `someonealwaysactive` - mask will never mask every bidder out
 ### indirect random input generation
 * using functions `getbids()` and `getinputs()`
   * called by `+probabilisticallyrandom` for `vsim`, use `make random=true` to disable

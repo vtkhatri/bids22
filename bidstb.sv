@@ -146,10 +146,60 @@ class bidsrandomizer;
     rand fsminputsrandomizer_t  randfsminputs;
     rand bidsinputsrandomizer_t randbidsinputs;
 
-    function biddersinputs_t getbids();
-        biddersinputs_t outbidders;
+    //
+    // constraints
+    //
+    constraint correctkey {
+        // always lock with `KEY
+        if      (randfsminputs.fsminputs.C_op == bit'(LOCK))   randfsminputs.fsminputs.C_data == `KEY;
+        // while unlocking 33% chance for `KEY, otherwise random
+        else if (randfsminputs.fsminputs.C_op == bit'(UNLOCK)) randfsminputs.fsminputs.C_data dist {`KEY:/1, ['0:'1]:/2};
+        // random everywhere else
+        else                                                   randfsminputs.fsminputs.C_data dist {['0:'1]:/1};
+    }
+
+    constraint limittimer {
+        // when setting timer, limit to 255 clock cycles
+        if (randfsminputs.fsminputs.C_op == bit'(SETTIMER)) randfsminputs.fsminputs.C_data < 32'd256;
+        // random everywhere else
+        else                                                randfsminputs.fsminputs.C_data dist {['0:'1]:/1};
+    }
+
+    constraint longerrounds {
+        // if already high, twice as likely to stay high
+        if (biftb.cin.C_start) randfsminputs.fsminputs.C_start dist {1 :/ 2, 0 :/ 1} ;
+        // if already low, twice as likely to stay low
+        else                   randfsminputs.fsminputs.C_start dist {1 :/ 1, 0 :/ 2} ;
+    }
+
+    constraint someonealwaysactive {
+        // ensuring one bidder is always active when masking someone out
+        if (randfsminputs.fsminputs.C_op == bit'(SETMASK)) randfsminputs.fsminputs.C_data % 8 != 0;
+    }
+
+    //
+    // indirect randomization
+    //
+    function biddersinputs_t [NUMBIDDERS-1:0] getbids();
+        biddersinputs_t [NUMBIDDERS-1:0] outbidders;
+        bit halfchance;
+        bit [7:0] stuffing;
+        outbidders = $random; // to make sure if indirect randomization is not done
+                              // atleast a default fully random is assigned
+
 
         for (int i=0; i<NUMBIDDERS; i++) begin
+            if ($test$plusargs("tokenstarved")) begin
+                outbidders[i].bid = biftb.cin.C_start;
+                stuffing = $random;
+                outbidders[i].bidAmt = biftb.bidders_out[i].balance + stuffing;
+            end
+            else if ($test$plusargs("impatientbidder")) begin
+                outbidders[i].bid = 1;
+            end
+            else if ($test$plusargs("rudebidder")) begin
+                outbidders[i].bid = ~biftb.cin.C_start;
+            end
         end
     endfunction
 
@@ -260,6 +310,8 @@ bids22coverstates statecg = new;
 bids22coverbidders biddercg = new;
 bids22outerrors errorcg = new;
 
+int temp;
+
 //
 // stimulus
 //
@@ -270,17 +322,31 @@ initial begin
     biftb.bidders_in[1] = 0;
     biftb.bidders_in[2] = 0;
 
+    // activating constraints
+    inrandoms.contraint_mode(0);
+    if ($test$plusargs("correctkey")) inrandoms.correctkey.constraint_mode(1);
+    if ($test$plusargs("limittimer")) inrandoms.limittimer.constraint_mode(1);
+    if ($test$plusargs("lognerrounds")) inrandoms.lognerrounds.constraint_mode(1);
+    if ($test$plusargs("someonealwaysactive")) inrandoms.someonealwaysactive.constraint_mode(1);
+
     // waiting for reset (2 clocks)
     repeat(CLOCK_IDLE) @(negedge clk);
 
     // making everyone win atleast once
     if ($test$plusargs("bidderswinonce")) biftb.makeAllBiddersWin();
 
+    // setting masks if required
+    if ($test$plusargs("maskout")) begin
+        $value$plusargs("maskout=%d", temp);
+        biftb.maskout(temp);
+    end
+
     // testing 1 million tokens for all
     if ($test$plusargs("milliontokens")) begin
         biftb.milliontokens();
-        biftb.lock(`KEY);
     end
+
+    if ($test$plusargs("milliontokens") || $test$plusargs("maskout")) biftb.lock(`KEY);
 
     if ($test$plusargs("dontrandtillcomplete")) begin
     end
