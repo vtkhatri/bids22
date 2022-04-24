@@ -141,47 +141,53 @@ interface bids22interface (input logic clk, reset_n);
         @(negedge clk);
         lock(12);
         @(negedge clk);
-        @(negedge clk);
-        cin.C_start = 1;
-        @(negedge clk);
-        bidders_in[0].bid = 1;
-        bidders_in[0].bidAmt = 2;
-        bidders_in[1].bid = 1;
-        bidders_in[1].bidAmt = 1;
-        bidders_in[2].bid = 0;
-        bidders_in[2].bidAmt = 1;
-        @(negedge clk);
-        cin.C_start = 0;
-        @(negedge clk);
-        @(negedge clk);
-        if ($test$plusargs("onlyonewinner")) begin
-        end
-        else begin
+        repeat(($random & 3'b011) + 1) begin
             @(negedge clk);
             cin.C_start = 1;
             @(negedge clk);
             bidders_in[0].bid = 1;
-            bidders_in[0].bidAmt = 1;
+            bidders_in[0].bidAmt = 2;
             bidders_in[1].bid = 1;
-            bidders_in[1].bidAmt = 2;
-            bidders_in[2].bid = 1;
+            bidders_in[1].bidAmt = 1;
+            bidders_in[2].bid = 0;
             bidders_in[2].bidAmt = 1;
             @(negedge clk);
             cin.C_start = 0;
             @(negedge clk);
+        end
+        @(negedge clk);
+        if ($test$plusargs("onlyonewinner")) begin
+        end
+        else begin
+            repeat(($random & 3'b011) + 1) begin
+                @(negedge clk);
+                cin.C_start = 1;
+                @(negedge clk);
+                bidders_in[0].bid = 1;
+                bidders_in[0].bidAmt = 1;
+                bidders_in[1].bid = 1;
+                bidders_in[1].bidAmt = 2;
+                bidders_in[2].bid = 1;
+                bidders_in[2].bidAmt = 1;
+                @(negedge clk);
+                cin.C_start = 0;
+                @(negedge clk);
+            end
             @(negedge clk);
-            @(negedge clk);
-            cin.C_start = 1;
-            @(negedge clk);
-            bidders_in[0].bid = 1;
-            bidders_in[0].bidAmt = 1;
-            bidders_in[1].bid = 1;
-            bidders_in[1].bidAmt = 1;
-            bidders_in[2].bid = 1;
-            bidders_in[2].bidAmt = 2;
-            @(negedge clk);
-            cin.C_start = 0;
-            @(negedge clk);
+            repeat(($random & 3'b011) + 1) begin
+                @(negedge clk);
+                cin.C_start = 1;
+                @(negedge clk);
+                bidders_in[0].bid = 1;
+                bidders_in[0].bidAmt = 1;
+                bidders_in[1].bid = 1;
+                bidders_in[1].bidAmt = 1;
+                bidders_in[2].bid = 1;
+                bidders_in[2].bidAmt = 2;
+                @(negedge clk);
+                cin.C_start = 0;
+                @(negedge clk);
+            end
             @(negedge clk);
             unlock(12);
             @(negedge clk);
@@ -227,6 +233,15 @@ interface bids22interface (input logic clk, reset_n);
         @(negedge clk);
         return;
     endtask : milliontokens
+
+    task maskout(int mask);
+        cin = 0;
+        @(negedge clk);
+        cin.C_op = SETMASK;
+        cin.C_data = mask;
+        @(negedge clk);
+        return;
+    endtask : maskout
 
     
 endinterface : bids22interface

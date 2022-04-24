@@ -19,7 +19,7 @@ vsim_args := \
 
 vsim_gui_args := \
 	-do "coverage save -onexit -directive -cvg -codeAll $(COVERAGE_FILE)" \
-	+dontrandtillcomplete +bidderswinonce +onlyonewinner
+	+dontrandtillcomplete +bidderswinonce
 
 ifeq ($(random), true)
 else
@@ -45,6 +45,8 @@ build: vlog
 
 sim: vsim vcover
 
+gui: guivsim vcover
+
 clean:
 	rm -fr $(REMOVABLE_STUFF)
 
@@ -58,7 +60,7 @@ vsim: vlog
 	vsim -c work.$(top_module) -do "vopt +cover=csfe $(top_module) -o $(top_module)_opt ; q"
 	vsim -c -coverage work.$(top_module)_opt $(vsim_args)
 
-gui: vlog
+guivsim: vlog
 	vsim -c work.$(top_module) -do "vopt +cover=csfe $(top_module) -o $(top_module)_opt ; q"
 	vsim -coverage work.$(top_module)_opt $(vsim_gui_args)
 
