@@ -1,4 +1,4 @@
-.PHONY: all build sim clean
+.PHONY: all build sim clean gui
 
 SRC_FILES := bidsinterface.sv bids.sv bidstb.sv
 COVERAGE_FILE   := coverage.ucdb
@@ -16,6 +16,10 @@ top_module := top
 vsim_args := \
 	-do "coverage save -onexit -directive -cvg -codeAll $(COVERAGE_FILE) ; run -all" \
 	+RUNS=$(runs) +PRINTAFTERTESTS=$(tests)
+
+vsim_gui_args := \
+	-do "coverage save -onexit -directive -cvg -codeAll $(COVERAGE_FILE)" \
+	+dontrandtillcomplete +bidderswinonce +onlyonewinner
 
 ifeq ($(random), true)
 else
@@ -53,6 +57,11 @@ vlog:
 vsim: vlog
 	vsim -c work.$(top_module) -do "vopt +cover=csfe $(top_module) -o $(top_module)_opt ; q"
 	vsim -c -coverage work.$(top_module)_opt $(vsim_args)
+
+gui: vlog
+	vsim -c work.$(top_module) -do "vopt +cover=csfe $(top_module) -o $(top_module)_opt ; q"
+	vsim -coverage work.$(top_module)_opt $(vsim_gui_args)
+
 
 vcover:
 	vcover report -verbose -directive -codeAll -code csfe -cvg $(COVERAGE_FILE) -output $(COVERAGE_REPORT)
