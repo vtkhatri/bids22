@@ -39,13 +39,13 @@ REMOVABLE_STUFF := \
 	$(COVERAGE_FILE) \
 	$(COVERAGE_REPORT)
 
-all: vlib vlog vsim vcover
+all: vlib vlog vopt vsim vcover
 
 build: vlog
 
-sim: vsim vcover
+sim: vopt vsim vcover
 
-gui: guivsim vcover
+gui: vopt guivsim vcover
 
 clean:
 	rm -fr $(REMOVABLE_STUFF)
@@ -56,12 +56,13 @@ vlib:
 vlog:
 	vlog $(vlog_args) $(SRC_FILES)
 
-vsim: vlog
+vopt: vlog
 	vsim -c work.$(top_module) -do "vopt +cover=csfe $(top_module) -o $(top_module)_opt ; q"
+
+vsim: vopt
 	vsim -c -coverage work.$(top_module)_opt $(vsim_args)
 
-guivsim: vlog
-	vsim -c work.$(top_module) -do "vopt +cover=csfe $(top_module) -o $(top_module)_opt ; q"
+guivsim: vopt
 	vsim -coverage work.$(top_module)_opt $(vsim_gui_args)
 
 
