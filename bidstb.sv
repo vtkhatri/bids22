@@ -323,10 +323,10 @@ initial begin
     biftb.bidders_in[2] = 0;
 
     // activating constraints
-    inrandoms.contraint_mode(0);
+    inrandoms.constraint_mode(0);
     if ($test$plusargs("correctkey")) inrandoms.correctkey.constraint_mode(1);
     if ($test$plusargs("limittimer")) inrandoms.limittimer.constraint_mode(1);
-    if ($test$plusargs("lognerrounds")) inrandoms.lognerrounds.constraint_mode(1);
+    if ($test$plusargs("longerrounds")) inrandoms.longerrounds.constraint_mode(1);
     if ($test$plusargs("someonealwaysactive")) inrandoms.someonealwaysactive.constraint_mode(1);
 
     // waiting for reset (2 clocks)
