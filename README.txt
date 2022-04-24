@@ -17,8 +17,9 @@
 * `makeAllBiddersWin()`
   * gives tokens to all bidders
   * locks device
-  * starts 3 rounds that lead to all bidders winning atleast once
+  * starts rounds that lead to all bidders winning atleast once, at max 4 times
   * can make only 1 bidder win with `+onlyonewinner` plusarg
+* `maskout()` allows us manually mask bidders out
 ### plusargs to use bfm tasks
 * `+bidderswinonce` - to call `makeAllBiddersWin()`
 * `+milliontokens` - to call `milliontokens()` and then lock the device
