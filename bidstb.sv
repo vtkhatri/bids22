@@ -180,8 +180,8 @@ class bidsrandomizer;
     //
     // indirect randomization
     //
-    function biddersinputs_t [NUMBIDDERS-1:0] getbids();
-        biddersinputs_t [NUMBIDDERS-1:0] outbidders;
+    function biddersinputs_t getbids(int i);
+        biddersinputs_t outbidders;
         bit halfchance;
         bit [7:0] stuffing;
         outbidders = $random; // to make sure if indirect randomization is not done
@@ -190,17 +190,19 @@ class bidsrandomizer;
 
         for (int i=0; i<NUMBIDDERS; i++) begin
             if ($test$plusargs("tokenstarved")) begin
-                outbidders[i].bid = biftb.cin.C_start;
+                outbidders.bid = biftb.cin.C_start;
                 stuffing = $random;
-                outbidders[i].bidAmt = biftb.bidders_out[i].balance + stuffing;
+                outbidders.bidAmt = biftb.bidders_out[i].balance + stuffing;
             end
             else if ($test$plusargs("impatientbidder")) begin
-                outbidders[i].bid = 1;
+                outbidders.bid = 1;
             end
             else if ($test$plusargs("rudebidder")) begin
-                outbidders[i].bid = ~biftb.cin.C_start;
+                outbidders.bid = ~biftb.cin.C_start;
             end
         end
+
+        return outbidders;
     endfunction
 
     function fsminputs_t getinputs();
@@ -362,7 +364,8 @@ task randtillcomplete();
         assert(inrandoms.randomize());
 
         if ($test$plusargs("probabilisticallyrandom")) begin
-            biftb.bidders_in = inrandoms.randbidsinputs.biddersinputs;
+            for (int i=0; i<NUMBIDDERS; i++)
+                biftb.bidders_in[i] = inrandoms.getbids(i);
             biftb.cin        = inrandoms.getinputs();
         end
         else begin
