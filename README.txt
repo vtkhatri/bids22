@@ -2,6 +2,9 @@
 ## deeksha kamath, viraj khatri
 ---
 ## assignment 3
+```
+make runs=<number of tests> tests=<number of tests before coverage print>
+```
 ### dynamic randomization constraints
 * `correctkey`
   * makes sure key is `KEY when locking
@@ -17,7 +20,10 @@
     * mask will always leave at least 1 bidder active
     * cooldown timer can never be greater then 2^8
     * 25% change to toggle `C_start`, make longer rounds and longer break between rounds
-  * `gitbids()`
+  * `gitbids()` for inputs to bidders
+    * `+tokenstarved` to get `INSUFFICIENT_FUNDS` errors
+    * `+impatientbidder` to get `ROUND_INACTIVE` error
+    * `+rudebidder` to bid when `C_start` is low, and not bid when high
 ### bfm tasks to setup device
 * `lock()` and `unlock()` tasks that use a pre-defined macro key
 * `milliontokens()` to give each bidder a million tokens

@@ -67,6 +67,7 @@ class overlord;
         end
         coverage = coverage / denom;
 
+        if ($test$plusargs("doallruns")) coverage = 100 * currentruns / runs;
         if (currentruns >= runs) coverage = 100;
 
         return coverage;
@@ -187,19 +188,16 @@ class bidsrandomizer;
         outbidders = $random; // to make sure if indirect randomization is not done
                               // atleast a default fully random is assigned
 
-
-        for (int i=0; i<NUMBIDDERS; i++) begin
-            if ($test$plusargs("tokenstarved")) begin
-                outbidders.bid = biftb.cin.C_start;
-                stuffing = $random;
-                outbidders.bidAmt = biftb.bidders_out[i].balance + stuffing;
-            end
-            else if ($test$plusargs("impatientbidder")) begin
-                outbidders.bid = 1;
-            end
-            else if ($test$plusargs("rudebidder")) begin
-                outbidders.bid = ~biftb.cin.C_start;
-            end
+        if ($test$plusargs("tokenstarved")) begin
+            outbidders.bid = biftb.cin.C_start;
+            stuffing = $random;
+            outbidders.bidAmt = biftb.bidders_out[i].balance + stuffing;
+        end
+        else if ($test$plusargs("impatientbidder")) begin
+            outbidders.bid = 1;
+        end
+        else if ($test$plusargs("rudebidder")) begin
+            outbidders.bid = ~biftb.cin.C_start;
         end
 
         return outbidders;
@@ -312,6 +310,15 @@ bids22coverstates statecg = new;
 bids22coverbidders biddercg = new;
 bids22outerrors errorcg = new;
 
+initial begin
+    forever begin
+        @(negedge clk);
+        statecg.sample();
+        biddercg.sample();
+        errorcg.sample();
+    end
+end
+
 int temp;
 
 //
@@ -382,5 +389,29 @@ task randtillcomplete();
     while (completiontracker.completion() < 100);
 endtask : randtillcomplete
 
+//
+// checking coverage and winning at the same time
+//
+initial begin
+    forever begin
+        @(negedge clk);
+        if ($test$plusargs("perclk")) $display("%0t - bidderwin coverage - x %0d, y %0d, z %0d", $time,
+                                               biddercg.coverxwinner.get_coverage(),
+                                               biddercg.coverywinner.get_coverage(),
+                                               biddercg.coverzwinner.get_coverage());
+    end
+end
+
+// assertions to track winners
+initial begin
+    if ($test$plusargs("assertwins")) begin
+        assert property(@(negedge clk) ~biftb.bidders_out[0].win)
+        else $display("%0t - x has won", $time);
+        assert property(@(negedge clk) ~biftb.bidders_out[1].win)
+        else $display("%0t - y has won", $time);
+        assert property(@(negedge clk) ~biftb.bidders_out[2].win)
+        else $display("%0t - z has won", $time);
+    end
+end
 
 endmodule : top
